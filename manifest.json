@@ -3,11 +3,22 @@
     "name": "Video Caption Extension",
     "description": "This extension load captions from our server and allows user to make bookmarks, comments and correct the captions.",
     "version": "1.0",
-
     "web_accessible_resources": [
         "menu.html",
         "menu.css",
         "script.js"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "jquery-2.2.4.min.js", "velocity.min.js", "event_handler.js"
+            ],
+            "run_at": "document_end",
+            "all_frames":true
+        }
     ],
     "background": {
         "scripts": [

@@ -1,26 +1,34 @@
-
-
+/*
+* Content Script: inject.js
+* Author: Junkai Yang
+*/
 var extensionOrigin = 'chrome-extension://' + chrome.runtime.id;
-if (!location.ancestorOrigins.contains(extensionOrigin)) {
-    var iframe = document.createElement('iframe');
+var id = chrome.runtime.id;
 
-    
-    // Must be declared at web_accessible_resources in manifest.json
-    iframe.src = chrome.runtime.getURL('menu.html');
-    iframe.onload = function(){
-        // Add iframe event handler here and then can access the parent document.
-        debugger;
-        a = parent.document.getElementsByTagName("video");
-    }
-    // document.getElementById("theButton").addEventListener("click",
-    //     function() {
-    //         debugger;
-    //         window.postMessage({ type: "FROM_PAGE", text: "Hello from the webpage!" }, "*");
-    // }, false);
-    // Some styles for a fancy sidebar
-    iframe.style.cssText = 'position:fixed;top:0;left:0;display:block;' +
-        'width:300px;height:100%;z-index:1000;';
-    document.body.appendChild(iframe);
+var ifWindowExists = function () {
+    return document.getElementById(id) != null;
 }
 
+if (!location.ancestorOrigins.contains(extensionOrigin)) {
+    var iframe 
+    
+    // test if the menu window has already existed
+    if (!ifWindowExists()) {
+        iframe = document.createElement('iframe');
+        // Must be declared at web_accessible_resources in manifest.json
+        iframe.src = chrome.runtime.getURL('menu.html');
+        iframe.id = chrome.runtime.id;
+        iframe.dataset.shown = false;
+        iframe.style.cssText = 'position:fixed;top:0;right:0;display:block;' +
+            'width:0;height:0;z-index:2999999999;border:none;';
+        document.body.appendChild(iframe);
+    }else{
+        iframe = document.getElementById(id);
+    }
 
+    if (iframe.dataset.shown == "false") {
+        window.parent.postMessage({ application: 'video_caption', type: "UI_SHOW", message: "" }, "*");
+    }else{
+        window.parent.postMessage({ application: 'video_caption', type: "UI_HIDE", message: "" }, "*");
+    }
+}

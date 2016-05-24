@@ -1,4 +1,5 @@
-
+captions = [];
+currentCaption = null;
 function gup(name, url) {
     if (!url) url = location.href;
     name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -10,7 +11,7 @@ function gup(name, url) {
 //gup('q', 'hxxp://example.com/?q=abc')
 
 var showUI = function () {
-    $("#" + chrome.runtime.id).velocity({ width: 340, height: 330 }, 250);
+    $("#" + chrome.runtime.id).velocity({ width: 340, height: 400 }, 250);
     $("#" + chrome.runtime.id)[0].dataset.shown = true;
 
 }
@@ -33,26 +34,65 @@ var getVideoInfo = function () {
 
 window.addEventListener("message", function (event) {
     var origin = event.origin || event.originalEvent.origin; // For Chrome, the origin property is in the event.originalEvent object.
+    var frame = document.getElementById(chrome.runtime.id);
 
-    if (event.data.application == "video_caption" && event.data.type == "UI_HIDE") {
-        console.log("Content script received: " + event.data.type);
+    if (event.data.application != 'video_caption')
+        return;
+
+    console.log("Content script received: " + event.data.type);
+    if (event.data.type == "UI_HIDE") {
         hideUI();
     }
-}, false);
-
-
-window.addEventListener("message", function (event) {
-    if (event.data.application == "video_caption" && event.data.type == "UI_SHOW") {
-        console.log("Content script received: " + event.data.type);
+    else if (event.data.type == "UI_SHOW") {
         showUI();
     }
-}, false);
-
-window.addEventListener("message", function (event) {
-    var frame = document.getElementById (chrome.runtime.id);
-    if (event.data.application == "video_caption" && event.data.type == "UI_READY") {
+    else if (event.data.type == "UI_READY") {
         console.log("Content script received: " + event.data.type);
         if (!isVideoPage())
-            frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", message: JSON.stringify({ success: false, message: 'This page does not contain a video.' }) }, "*");
+            frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
+        else {
+            var videoInfo = getVideoInfo();
+            $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
+                captions = JSON.parse(response);
+                videoInfo.captionLength = captions.length;
+                frame.contentWindow.postMessage(
+                    {
+                        application: 'video_caption',
+                        type: "UI_INIT",
+                        success: true,
+                        message: JSON.stringify(videoInfo)
+                    },
+                    "*");
+            });
+        }
     }
-});
+    else if(event.data.type == "LOAD_CAPTION"){
+        var $caption = $("<p>123123123123</p>");
+        $caption.css("position", "absolute");
+        $caption.css("bottom", "45px");
+        $caption.css("width", "100%");
+        $caption.css('z-index', '10000');
+        $caption.css("text-align", 'center');
+        $caption.css('font-size', '22px');
+        $(".html5-video-player").append($caption);
+        var video = $("video")[0];
+        setInterval(function(){
+            var time = video.currentTime * 1000 ;
+            if(currentCaption && time < currentCaption.end && time >= currentCaption.start)
+                return;
+            else{
+                for(var i = 0 ; i < captions.length; i++){
+                    var c = captions[i];
+                    if(time < c.end && time >= c.start){
+                        currentCaption = c;
+                        $caption.text(c.text);
+                        return;
+                    }
+                }
+            }
+        }, 300);
+        
+    }
+}, false);
+
+
