@@ -16,7 +16,7 @@ if (!location.ancestorOrigins.contains(extensionOrigin)) {
     if (!ifWindowExists()) {
         iframe = document.createElement('iframe');
         // Must be declared at web_accessible_resources in manifest.json
-        iframe.src = chrome.runtime.getURL('menu.html');
+        iframe.src = chrome.runtime.getURL('pages/menu.html');
         iframe.id = chrome.runtime.id;
         iframe.dataset.shown = false;
         iframe.style.cssText = 'position:fixed;top:0;right:0;display:block;' +

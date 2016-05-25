@@ -67,13 +67,16 @@ window.addEventListener("message", function (event) {
         }
     }
     else if(event.data.type == "LOAD_CAPTION"){
-        var $caption = $("<p>123123123123</p>");
+        var $caption = $("<p></p>");
         $caption.css("position", "absolute");
         $caption.css("bottom", "45px");
         $caption.css("width", "100%");
+        $caption.css("padding-left", "10%");
+        $caption.css("padding-right", "10%")
         $caption.css('z-index', '10000');
         $caption.css("text-align", 'center');
         $caption.css('font-size', '22px');
+        $caption.css('box-sizing', 'border-box');
         $(".html5-video-player").append($caption);
         var video = $("video")[0];
         setInterval(function(){

@@ -10,7 +10,7 @@ body{
     bottom:0;
     left:0;
     right:0;
-    background: url("loading.gif") no-repeat center center;
+    background: url("/images/loading.gif") no-repeat center center;
     background-size:40px 40px;
 }
 
