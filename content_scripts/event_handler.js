@@ -1,5 +1,6 @@
 captions = [];
 currentCaption = null;
+
 function gup(name, url) {
     if (!url) url = location.href;
     name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -33,13 +34,14 @@ var getVideoInfo = function () {
 }
 
 window.addEventListener("message", function (event) {
-    var origin = event.origin || event.originalEvent.origin; // For Chrome, the origin property is in the event.originalEvent object.
+    console.log("Content script received: " + event.data.type);
+    
     var frame = document.getElementById(chrome.runtime.id);
 
+    // Check the message sender
     if (event.data.application != 'video_caption')
         return;
-
-    console.log("Content script received: " + event.data.type);
+    
     if (event.data.type == "UI_HIDE") {
         hideUI();
     }
@@ -47,7 +49,6 @@ window.addEventListener("message", function (event) {
         showUI();
     }
     else if (event.data.type == "UI_READY") {
-        console.log("Content script received: " + event.data.type);
         if (!isVideoPage())
             frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
         else {
@@ -65,6 +66,12 @@ window.addEventListener("message", function (event) {
                     "*");
             });
         }
+        
+        // Show UI if ready
+        if(!frame.dataset.ready && frame.dataset.shown != "true"){
+            showUI();
+        }
+        frame.dataset.ready = "true";
     }
     else if(event.data.type == "LOAD_CAPTION"){
         var $caption = $("<p></p>");
@@ -94,7 +101,6 @@ window.addEventListener("message", function (event) {
                 }
             }
         }, 300);
-        
     }
 }, false);
 

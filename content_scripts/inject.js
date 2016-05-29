@@ -25,10 +25,11 @@ if (!location.ancestorOrigins.contains(extensionOrigin)) {
     }else{
         iframe = document.getElementById(id);
     }
-
-    if (iframe.dataset.shown == "false") {
+    
+    // Show the window only when it is ready
+    if (iframe.dataset.shown == "false" && iframe.dataset.ready == "true") {
         window.parent.postMessage({ application: 'video_caption', type: "UI_SHOW", message: "" }, "*");
-    }else{
+    }else if(iframe.dataset.shown == "true"){
         window.parent.postMessage({ application: 'video_caption', type: "UI_HIDE", message: "" }, "*");
     }
 }
