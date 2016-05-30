@@ -15,35 +15,57 @@ var CaptionBox = React.createClass({
             comments.push(<div key={c.id} className={commentClass(c)}>
                                 <span className="comment comment-username">{c.user.email}</span>
                                 c.text
-                                <p className="comment-time">- c.created_at</p>
+                                <p className="comment-time">- {c.created_at}</p>
                             </div>);
         }
         return comments;
     },
     getIcons: function(){
+        var that = this;
+        var inaccessibleClass = function(){
+            var className =  "icon-count inaccessible-count with-tooptip";
+            if(that.state.caption.inaccessibles.length) className += " active ";
+            if(that.state.caption.selfInaccessible) className += "self-active";
+            return className;
+        }
         
+        var bookmarkClass = function(){
+            var className =  "icon-count bookmark-count with-tooptip";
+            if(that.state.caption.bookmarks.length) className += " active ";
+            if(that.state.caption.selfBookmark) className += "self-active";
+            return className;
+        }
+        
+        var questionClass = function(){
+            var className =  "icon-count question-count with-tooptip";
+            if(that.state.caption.questions.length) className += " active ";
+            if(that.state.caption.selfQuestion) className += "self-active";
+            return className;
+        }
+        
+
+        return (<div className="icon-count-container">
+                        <div className={inaccessibleClass()} data-toggle="tooltip" data-placement="bottom" title="" data-original-title="report caption error">
+                            <span className="inaccessible-count-number icon-count-number">{this.state.caption.inaccessibles.length}</span>
+                        </div>
+                        <div className={bookmarkClass()} data-toggle="tooltip" data-placement="bottom" title="" data-original-title="add a bookmark">
+                            <span className="bookmark-count-number icon-count-number">{this.state.caption.bookmarks.length}</span>
+                        </div>
+                        <div className={questionClass()} data-toggle="tooltip" data-placement="bottom" title="" data-original-title="ask for help">
+                            <span className="question-count-number icon-count-number">{this.state.caption.questions.length}</span>
+                        </div>
+                    </div>);
     },
     render: function () {
         return (
             <div className="caption">
                 <div className="row caption-header">
                     <div className="time-label-wrapper">
-                        <span>{this.state.caption.startHuman}-{this.state.caption.endHuman}</span>
+                        <span className="time-label">{this.state.caption.startHuman}-{this.state.caption.endHuman}</span>
                         <span className="time-control-btn play-btn glyphicon glyphicon-play" aria-hidden="true"></span>
                         <span className="time-control-btn loop-btn glyphicon glyphicon-repeat" aria-hidden="true"></span>
                     </div>
-                    
-                    <div className="icon-count-container">
-                        <div className="icon-count inaccessible-count active with-tooptip" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="report caption error">
-                            <span className="inaccessible-count-number icon-count-number">3</span>
-                        </div>
-                        <div className="icon-count bookmark-count active  with-tooptip" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="add a bookmark">
-                            <span className="bookmark-count-number icon-count-number">2</span>
-                        </div>
-                        <div className="icon-count question-count active  with-tooptip" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="ask for help">
-                            <span className="question-count-number icon-count-number">2</span>
-                        </div>
-                    </div>
+                    {this.getIcons()}
                 </div>
                 <div className="caption-body row">
                     <div className="col-sm-6 correction-wrapper">

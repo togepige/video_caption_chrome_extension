@@ -42,7 +42,8 @@
 
 .textarea-label{
     background-color: #BBB;
-    color: #1E9C00;
+    /*color: #1E9C00;*/
+    color:white;
     font-size:14px;
     padding:2px 12px;
 }
@@ -137,3 +138,17 @@
     background-image:url("../images/button_ask_on.png");
 }
 
+.comment-username{
+    color: #3b5998;
+    font-weight:bold;
+    margin-right:5px;
+}
+
+.comment-time{
+    font-size:10px;
+    color: #9197a3;
+}
+
+.time-label-wrapper span{
+    margin-right:4px;
+}
