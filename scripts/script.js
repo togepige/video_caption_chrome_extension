@@ -1,3 +1,6 @@
+
+
+// Loading indicator UI component
 var LoadingIndicator = React.createClass({
     isLoaded: function () {
         return this.props.loaded ? "loaded" : "loading";
@@ -9,65 +12,97 @@ var LoadingIndicator = React.createClass({
     }
 });
 
+// Close button UI component
 var CloseButton = React.createClass({
+    handleClick: function(){
+       this.props.onClose(); 
+    }, 
     render: function () {
         return <div id="close-button-container">
-            <a id="close-button-wrapper">
+            <a id="close-button-wrapper" onClick={this.handleClick}>
                 <img id="close-button-image" src="/images/close.png" />
             </a>
         </div>;
     }
 });
 
+// Menu warning message UI component
 var MenuMessage = React.createClass({
     getClass: function () {
         return this.props.message ? "" : "hidden";
     },
     render: function () {
         return (
-            <div id="warning-container" class="hidden">
+            <div id="warning-container" className="hidden">
                 <p>{this.props.message}</p>
             </div>);
     }
 });
 
+// Video information UI component
 var VideoInformation = React.createClass({
     render: function () {
         if (this.props.video) {
             return (
-                <div id="video-info-container" class="hidden">
-                    <div class="content-wrapper">
-                        <label class="info-label">Video Id</label>
-                        <p class="info-content" id="video_id">{this.props.video.id}</p>
+                <div id="video-info-container">
+                    <div className="content-wrapper">
+                        <label className="info-label">Video Id</label>
+                        <p className="info-content" id="video_id">{this.props.video.id}</p>
                     </div>
-                    <div class="content-wrapper">
-                        <label class="info-label">Video Title</label>
-                        <p class="info-content" id="video_title">{this.props.video.title}</p>
-                    </div>
-
-                    <div class="content-wrapper">
-                        <label class="info-label">Course</label>
-                        <p class="info-content">Blackboard Test Course 123</p>
+                    <div className="content-wrapper">
+                        <label className="info-label">Video Title</label>
+                        <p className="info-content" id="video_title">{this.props.video.title}</p>
                     </div>
 
-                    <div id="control-container" class="hidden">
-                        <button id="load-caption" class="btn-success">Load Caption</button>
+                    <div className="content-wrapper">
+                        <label className="info-label">Course</label>
+                        <p className="info-content">Blackboard Test Course 123</p>
                     </div>
                 </div>
             );
-        }else{
+        } else {
             return (<div id="video-info-container"></div>);
         }
 
     }
-})
+});
 
+// Menu control UI component
+var CaptionControl = React.createClass({
+    getInitialState: function(){
+        return {loaded: false};
+    },
+    handleLoadCaption: function(){
+        window.parent.postMessage({ application: 'video_caption', type: "LOAD_CAPTION", message: "" }, "*");  
+    },
+    handleOpenEditor: function(){
+        window.parent.postMessage({ application: 'video_caption', type: "OPEN_EDITOR", message: "" }, "*");  
+    },
+    getClass: function(){
+        return this.props.video ? '' : 'hidden';
+    },
+    getButtonText: function(){
+    },  
+    render: function () {
+        return (
+            <div id="control-container" className={this.getClass()}>
+                <button id="load-caption" className="btn btn-success" onClick={this.handleLoadCaption}>Load Caption</button>
+                <button id="load-caption" className="btn btn-success" onClick={this.handleOpenEditor}>Open Caption Editor</button>
+            </div>
+        )
+    }
+});
+
+// Menu main window UI component
 var MenuWindow = React.createClass({
     getInitialState: function () {
         return { loaded: false, video: null, message: '' };
     },
     contentClass: function () {
         return this.state.loaded ? '' : 'hidden';
+    },
+    handleClose: function(){
+        window.parent.postMessage({ application: 'video_caption', type: "UI_HIDE", message: "" }, "*");
     },
     componentDidMount: function () {
         var that = this;
@@ -91,22 +126,28 @@ var MenuWindow = React.createClass({
     render: function () {
         return (
             <div id="main-container">
-                <CloseButton />
+                <CloseButton onClose={this.handleClose}/>
                 <LoadingIndicator loaded={this.state.loaded} />
                 <div id="content-container" className={this.contentClass() }>
-                    <h2 id="project-title">Caption Project</h2>
+                    <h1 id="project-title">Caption Project</h1>
                     <MenuMessage message={this.state.message} />
                     <VideoInformation video={this.state.video} />
+                    <CaptionControl video={this.state.video} />
                 </div>
             </div>
         );
     }
 });
 
+
+// Render the menu window component
 ReactDOM.render(
     <MenuWindow />,
     document.getElementById('application')
 );
+
+
+// Old code ------------------------------------------------------------------------------------------
 // var f = function(){};
 // var captions = [];
 

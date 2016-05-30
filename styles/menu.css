@@ -21,7 +21,9 @@ body{
 
 
 #main-container{
-    background-color:#EEE;
+    background-color:#252424;
+    color: white;
+    opacity:0.9;
     position:fixed;
     top:20px;
     right:20px;
@@ -55,12 +57,17 @@ body{
 }
 
 .info-label{
-    font-weight:600;
+    font-size:14px;
+    font-weight:700;
 }
 
 .info-content{
     margin-top:4px;
 }
+
+.btn{
+    margin-top:6px;
+} 
 
 .btn-success{
     background-color:#5cb85c;

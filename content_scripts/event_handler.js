@@ -33,15 +33,18 @@ var getVideoInfo = function () {
     };
 }
 
+
+
+
 window.addEventListener("message", function (event) {
     console.log("Content script received: " + event.data.type);
-    
+
     var frame = document.getElementById(chrome.runtime.id);
 
     // Check the message sender
     if (event.data.application != 'video_caption')
         return;
-    
+
     if (event.data.type == "UI_HIDE") {
         hideUI();
     }
@@ -66,14 +69,14 @@ window.addEventListener("message", function (event) {
                     "*");
             });
         }
-        
+
         // Show UI if ready
-        if(!frame.dataset.ready && frame.dataset.shown != "true"){
+        if (!frame.dataset.ready && frame.dataset.shown != "true") {
             showUI();
         }
         frame.dataset.ready = "true";
     }
-    else if(event.data.type == "LOAD_CAPTION"){
+    else if (event.data.type == "LOAD_CAPTION") {
         var $caption = $("<p></p>");
         $caption.css("position", "absolute");
         $caption.css("bottom", "45px");
@@ -86,14 +89,14 @@ window.addEventListener("message", function (event) {
         $caption.css('box-sizing', 'border-box');
         $(".html5-video-player").append($caption);
         var video = $("video")[0];
-        setInterval(function(){
-            var time = video.currentTime * 1000 ;
-            if(currentCaption && time < currentCaption.end && time >= currentCaption.start)
+        setInterval(function () {
+            var time = video.currentTime * 1000;
+            if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
                 return;
-            else{
-                for(var i = 0 ; i < captions.length; i++){
+            else {
+                for (var i = 0; i < captions.length; i++) {
                     var c = captions[i];
-                    if(time < c.end && time >= c.start){
+                    if (time < c.end && time >= c.start) {
                         currentCaption = c;
                         $caption.text(c.text);
                         return;
@@ -101,6 +104,11 @@ window.addEventListener("message", function (event) {
                 }
             }
         }, 300);
+    }
+    else if (event.data.type == "OPEN_EDITOR") {
+        chrome.runtime.sendMessage({ application: "video_caption", type: "OPEN_EDITOR" }, function (response) {
+            console.log(response.success);
+        });
     }
 }, false);
 
