@@ -7,7 +7,8 @@
         "pages/menu.html",
         "pages/editor.html",
         "styles/menu.css",
-        "scripts/script.js"
+        "scripts/script.js",
+        "images/draggable.png"
     ],
     "content_scripts": [
         {
@@ -15,7 +16,11 @@
                 "<all_urls>"
             ],
             "js": [
-                "public/jquery-2.2.4.min.js", "public/velocity.min.js", "content_scripts/event_handler.js"
+                "public/jquery-2.2.4.min.js", "public/velocity.min.js", "content_scripts/event_handler.js", "/public/jquery-ui/jquery-ui.js", "/public/dragiframe.js"
+            ],
+            "css": [
+              "/public/jquery-ui/jquery-ui.css",
+              "/styles/editor_handle.css"                
             ],
             "run_at": "document_end",
             "all_frames":true
@@ -32,7 +37,8 @@
     },
     "permissions": [
         "activeTab",
-        "https://ajax.googleapis.com/"
+        "https://ajax.googleapis.com/",
+        "https://datascience.ischool.syr.edu/*"
     ],
     
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"

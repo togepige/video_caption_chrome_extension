@@ -40,7 +40,7 @@ window.addEventListener("message", function (event) {
     console.log("Content script received: " + event.data.type);
 
     var frame = document.getElementById(chrome.runtime.id);
-
+    var video = $("video")[0];
     // Check the message sender
     if (event.data.application != 'video_caption')
         return;
@@ -88,7 +88,7 @@ window.addEventListener("message", function (event) {
         $caption.css('font-size', '22px');
         $caption.css('box-sizing', 'border-box');
         $(".html5-video-player").append($caption);
-        var video = $("video")[0];
+        
         setInterval(function () {
             var time = video.currentTime * 1000;
             if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
@@ -109,6 +109,14 @@ window.addEventListener("message", function (event) {
         chrome.runtime.sendMessage({ application: "video_caption", type: "OPEN_EDITOR" }, function (response) {
             console.log(response.success);
         });
+
+        setInterval(function () {
+            var time = video.currentTime * 1000;
+            document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({application: "video_caption", type: "SYNC_EDITOR", message: {
+                time: time
+            }}, "*")
+
+        }, 1000);
     }
 }, false);
 

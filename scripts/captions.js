@@ -128,3 +128,12 @@ function formatCaptionData(captions){
     });
     return captions;
 }
+
+function scrollTo($caption) {
+    if(!$caption.is(':visible'))
+        return;
+        
+    console.log($caption.position().left);
+    console.log($caption[0].offsetLeft);
+    $('#captions').stop(true).animate({scrollLeft: $caption[0].offsetLeft - 40}, 0);
+}

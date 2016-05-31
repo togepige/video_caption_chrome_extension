@@ -1,0 +1,11 @@
+#video_caption_editor_drag{
+    background-image: url('chrome-extension://__MSG_@@extension_id__/images/draggable.png');
+    position: absolute;
+    width:24px;
+    height:24px;
+    background-size:cover;
+    opacity:0.3;
+    top: 2px;
+    right:35px;
+    cursor:pointer;   
+}

@@ -1,9 +1,22 @@
+#caption-container{
+    background-color:whitesmoke;
+    border-radius:5px;
+    border: 1px solid #888;
+    padding:12px;
+    position:relative;
+    padding-left:30px;
+    padding-right:30px;
+}
+
+body{
+    background:transparent;
+}
 #captions{
-    border-radius: 5px;
+    /*border-radius: 5px;
     border: 1px solid #888;
     background-color: whitesmoke;
     padding: 12px;
-    position:relative;
+    position:relative;*/
     height:305px;    
     overflow-x: auto;
     overflow-y:hidden;
@@ -21,7 +34,8 @@
     border: 2px solid #bdc3c7;
     color:#141823;
     font-size:12px;
-    margin-bottom: 25px;
+    margin-top:20px;
+    margin-bottom: 0;
     height:265px;
     display:inline-block;
     width: 750px;
@@ -151,4 +165,36 @@
 
 .time-label-wrapper span{
     margin-right:4px;
+}
+
+
+.caption-control-arrow{
+    position: absolute;
+    display:block;
+    top:0;
+    bottom:0;
+    width:28px;
+    cursor:pointer;
+    background-image:linear-gradient(to right,rgba(0,0,0,.0001) 0,rgba(0,0,0,.2) 100%);
+    opacity:0.5;
+ }
+.caption-control-arrow:hover{
+    opacity:0.9;
+}
+
+
+.caption-control-arrow .glyphicon{
+    top:50%;
+    display:block;
+    position:absolute;
+    font-size:18px;
+
+}
+
+.caption-control-arrow-right{
+     right:0;
+ }
+
+.caption-control-arrow-left{
+    left:0;
 }

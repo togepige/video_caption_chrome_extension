@@ -58,7 +58,8 @@ var CaptionBox = React.createClass({
     },
     render: function () {
         return (
-            <div className="caption">
+            <div className="caption" id={this.state.caption.id}>
+                
                 <div className="row caption-header">
                     <div className="time-label-wrapper">
                         <span className="time-label">{this.state.caption.startHuman}-{this.state.caption.endHuman}</span>
@@ -108,14 +109,26 @@ var CaptionBox = React.createClass({
 });
 
 var Captions = React.createClass({
+    componentWillUpdate: function(nextProps, nextState){
+        //console.log(nextProps.  )
+        if(nextState.currentCaptionId != this.state.currentCaptionId){
+            var caption = this.state.captionMapping[nextState.currentCaptionId][0];
+            var component = this.state.captionMapping[nextState.currentCaptionId][1];
+            scrollTo($("#" + caption.id));
+        }
+    },
     getInitialState: function () {
-        return { captions: [] };
+        return { captions: [], captionMapping: {}, currentCaptionId: 0 };
     },
     captionBlocks: function () {
-
         var blocks = [];
         for (var i = 0; i < this.state.captions.length; i++) {
-            blocks.push(<CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]} />);
+            var captionComponent = <CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]} />;
+            this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i], captionComponent];
+            blocks.push(captionComponent);
+        }
+        if(this.state.captions.length && !this.state.currentCaptionId){
+            this.state.currentCaptionId = this.state.captions[0].id;
         }
         return blocks;
     },
@@ -124,21 +137,75 @@ var Captions = React.createClass({
         getCaptions("EkWfwRPyTG8").then(function (response) {
             that.setState({ captions: response });
         });
+        
+        $(".comments").mousewheel(function(event, delta) {
+            event.preventDefault();
+        });
+        $("#captions").mousewheel(function(event, delta) {
+            var $comment;
+            if($(event.toElement).closest('.comments-display').length){
+                $comment = $(event.toElement).closest('.comments-display');
+            }
+            else if($(event.toElement).is('.comments-display')){
+                $comment = $(event.toElement);
+            }
+            if($comment == null || !$comment.get(0).scrollHeight || $comment.get(0).scrollHeight <= $comment.height() ){
+                this.scrollLeft -= (delta * 70);
+                event.preventDefault();
+            }
+        });
+        //$("#caption-container").draggable();
     },
     render: function () {
         return (
-            <div id="captions">
-                <div id="caption-container">
-                    {this.captionBlocks()}
+            <div id="caption-container">
+                <a className="caption-control-arrow caption-control-arrow-left">
+                    <span className="glyphicon glyphicon-chevron-left"></span>
+                </a>
+                <a className="caption-control-arrow caption-control-arrow-right">
+                    <span className="glyphicon glyphicon-chevron-right"></span>
+                </a>
+                <div id="captions">
+                    <div>
+                        {this.captionBlocks()}
+                    </div>
                 </div>
             </div>
         );
     }
 });
 
-ReactDOM.render(
-    <Captions />,
+
+
+var captionsComponent = <Captions />;
+captionsComponent = ReactDOM.render(
+    captionsComponent, 
     document.getElementById('application')
 )
 
 
+window.addEventListener("message", function (event) {
+    if(event.data.application == "video_caption" && event.data.type == "SYNC_EDITOR"){
+        //var syncData = JSONevent.data.message);
+        // Sync the editor based on the time information from content script
+        var syncData = event.data.message;
+        
+        if(captionsComponent.state.captionMapping){
+            var currentCaption = captionsComponent.state.captionMapping[captionsComponent.state.currentCaptionId][0];
+            if (syncData.time < currentCaption.end && syncData.time >= currentCaption.start) {
+                return;
+            }
+        }
+        for(var key in captionsComponent.state.captionMapping){
+            var caption = captionsComponent.state.captionMapping[key][0];
+            var component = captionsComponent.state.captionMapping[key][1];
+            if (syncData.time < caption.end && syncData.time >= caption.start) {
+                console.log(caption.id);
+                //captionsComponent.state.currentCaptionId = caption.id;
+                captionsComponent.setState({currentCaptionId: caption.id});
+
+                return;
+            }
+        }
+    }
+});
