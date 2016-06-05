@@ -14,5 +14,9 @@ Moreover, it should allow user to make bookmarks, write comments and correct cap
 * Run `npm install`
 * Run `grunt`
 
+## Some notes
+1. If you add some files to public folder or any path not in the grunt watch list, run `grunt` to rebuild again.
+
 ## Usage
-Currently it is still in development stage so you can download it and install in Chrome extension page.
+Currently it is still under development so you can download it and install in Chrome extension page.
+After build with `grunt`, load the `build` folder to Chrome Extension.
