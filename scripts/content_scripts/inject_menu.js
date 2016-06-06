@@ -1,5 +1,7 @@
 /*
 * Content Script: inject.js
+* This script is loaded by background.js when user clicks the extension button.
+* It then injects the menu window to current page.
 * Author: Junkai Yang
 */
 
@@ -11,7 +13,7 @@ var ifWindowExists = function () {
 }
 
 if (!location.ancestorOrigins.contains(extensionOrigin)) {
-    var iframe 
+    var iframe;
     
     // test if the menu window has already existed
     if (!ifWindowExists()) {
