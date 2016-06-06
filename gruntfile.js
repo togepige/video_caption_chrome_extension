@@ -8,23 +8,28 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-processhtml');
-
+    require('load-grunt-tasks')(grunt);
+    
     // Project configuration.
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        clean: ['build/', "scripts/jsx/**/*.js"],
+        clean: {
+            build: ['build/', "scripts/jsx/**/*.js"],
+            jsx: ['scripts/**/*.build.js', 'scripts/**/*.build.js.map']
+        },
         uglify: {
             development: {
                 options: {
                     sourceMap: true
                 },
-                files: {
-                    'build/content_scripts/inject_menu.min.js': ['scripts/content_scripts/inject_menu.js'],
-                    'build/content_scripts/inject_editor.min.js': ['scripts/content_scripts/inject_editor.js'],
-                    'build/content_scripts/event_handler.min.js': ['scripts/content_scripts/event_handler.js'],
-                    'build/background/background.min.js': ['scripts/background/background.js'],
-                    'build/content_scripts/content_scripts.min.js': ['public/jquery-2.2.4.min.js', "/public/jquery-ui/jquery-ui.js", "public/velocity.min.js"],
-                }
+                files: [
+                    //html
+                    //{ expand: true, src: ['build/scripts/**/*.js'], dest: '.' },
+                    {
+                        src: ['public/react/react.js', 'public/react/react-dom.js'],
+                        dest: 'build/public/react/react.bundle.js'
+                    },
+                ]
             }
         },
         copy: {
@@ -36,8 +41,9 @@ module.exports = function (grunt) {
                     { expand: true, src: ['images/**'], dest: 'build/' },
                     // Fonts
                     { expand: true, src: ['public/**/*.woff', "public/**/*.woff2", 'public/**/*.ttf'], dest: 'build/' },
-                    
+
                     { expand: true, src: ['manifest.json'], dest: 'build/' },
+                    
                     {
                         expand: true,
                         src: ['public/**/*.min.css'],
@@ -84,30 +90,54 @@ module.exports = function (grunt) {
         watch: {
             rebuild: {
                 files: ['scripts/**/*.jsx', "scripts/**/*.js", "html/**/*.html", "styles/**/*.css", "minifest.json"],
-                tasks: ['copy', 'cssmin', 'browserify']
+                tasks: ['copy', 'cssmin', 'browserify:development', 'processhtml']
             }
         },
-        browserify: {
-            development: {
-                options: {
-                    browserifyOptions: {
-                        debug: true
-                    },
-                    transform: [['babelify', { presets: ['react'] }]],
-                    exclude: ["scripts/**/*.bundle.js"]
-                },
+        babel: {
+            options: {
+                presets: ['react']
+            },
+            dist: {
                 files: [
                     {
                         expand: true,     // Enable dynamic expansion.
-                        src: ['scripts/**/*.jsx', 'scripts/**/*.js'],
-                        dest: 'build/',   // Destination path prefix.
-                        ext: '.js',   // Dest filepaths will have this extension.
+                        src: ['scripts/**/*.jsx'],
+                        dest: '.',   // Destination path prefix.
+                        ext: '.build.js',   // Dest filepaths will have this extension.
                         extDot: 'last'   // Extensions in filenames begin after the first dot
                     }
                 ]
             }
         },
+        browserify: {
+            libs: {
+                // External modules that don't need to be constantly re-compiled
+                src: [],
+                dest: 'build/public/react/react.bundle.js',
+                options: {
+                    require: ["react", "react-dom"]
+                }
+            },
+            development: {
+                options: {
+                    browserifyOptions: {
+                        debug: true,
+                        external: ['react', 'react-dom'],
+                    },
+                    external: ['react', 'react-dom'],
+                },
+                files: [
+                    {
+                        expand: true,     // Enable dynamic expansion.
+                        src: ['scripts/**/*.js'],
+                        dest: 'build/',   // Destination path prefix.
+                        ext: '.js',   // Dest filepaths will have this extension.
+                        extDot: 'first'   // Extensions in filenames begin after the first dot
+                    }
+                ]
+            }
+        }
     });
 
-    grunt.registerTask('default', ['clean', 'copy', 'cssmin', 'browserify', 'watch']);
+    grunt.registerTask('default', ['clean:build', 'copy', 'cssmin', 'babel', 'processhtml', 'browserify', 'clean:jsx', 'watch']);
 };

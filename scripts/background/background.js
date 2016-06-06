@@ -1,3 +1,11 @@
+/*
+* Background.js
+* This script is the background script for extension, 
+* It handle the extension button click event and also receive the message from menu window.
+*
+* Author: Junkai Yang
+*/
+
 chrome.browserAction.onClicked.addListener(function (tab) { //Fired when User Clicks ICON
     chrome.tabs.executeScript(null, { file: "scripts/content_scripts/inject_menu.js", allFrames: true });
 });

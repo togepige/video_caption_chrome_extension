@@ -1,7 +1,5 @@
 // main.js
-
 var moment = require("moment");
-
 var CaptionUtil = {};
 CaptionUtil.getCaptions = function (videoId) {
     var c = [];
