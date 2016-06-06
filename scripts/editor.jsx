@@ -141,10 +141,16 @@ var Captions = React.createClass({
     },
     componentDidMount: function () {
         var that = this;
-        CaptionUtil.getCaptions("EkWfwRPyTG8").then(function (response) {
-            that.setState({ captions: response });
-        });
 
+        window.addEventListener("message", function (event) {
+            if (event.data.application == "video_caption" && event.data.type == "EDITOR_INIT") {
+                console.log("editor_init received");
+                that.setState({captions: event.data.message.captions });
+            }
+        }, false);
+        window.parent.postMessage({ application: 'video_caption', type: "EDITOR_READY", message: "" }, "*");
+        
+        
         $(".comments").mousewheel(function (event, delta) {
             event.preventDefault();
         });
@@ -196,23 +202,25 @@ window.addEventListener("message", function (event) {
         //var syncData = JSONevent.data.message);
         // Sync the editor based on the time information from content script
         var syncData = event.data.message;
+        console.log(syncData.captionId);
+        
+        captionsComponent.setState({ currentCaptionId: syncData.captionId });
+        // if (captionsComponent.state.captionMapping) {
+        //     var currentCaption = captionsComponent.state.captionMapping[captionsComponent.state.currentCaptionId][0];
+        //     if (syncData.time < currentCaption.end && syncData.time >= currentCaption.start) {
+        //         return;
+        //     }
+        // }
+        // for (var key in captionsComponent.state.captionMapping) {
+        //     var caption = captionsComponent.state.captionMapping[key][0];
+        //     var component = captionsComponent.state.captionMapping[key][1];
+        //     if (syncData.time < caption.end && syncData.time >= caption.start) {
+        //         console.log(caption.id);
+        //         //captionsComponent.state.currentCaptionId = caption.id;
+        //         captionsComponent.setState({ currentCaptionId: caption.id });
 
-        if (captionsComponent.state.captionMapping) {
-            var currentCaption = captionsComponent.state.captionMapping[captionsComponent.state.currentCaptionId][0];
-            if (syncData.time < currentCaption.end && syncData.time >= currentCaption.start) {
-                return;
-            }
-        }
-        for (var key in captionsComponent.state.captionMapping) {
-            var caption = captionsComponent.state.captionMapping[key][0];
-            var component = captionsComponent.state.captionMapping[key][1];
-            if (syncData.time < caption.end && syncData.time >= caption.start) {
-                console.log(caption.id);
-                //captionsComponent.state.currentCaptionId = caption.id;
-                captionsComponent.setState({ currentCaptionId: caption.id });
-
-                return;
-            }
-        }
+        //         return;
+        //     }
+        // }
     }
 });

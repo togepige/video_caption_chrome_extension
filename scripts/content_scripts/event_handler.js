@@ -14,6 +14,8 @@ currentCaption = null;
 TaskInterval = null;
 VideoTasks = [];
 
+CaptionUtil = require("../caption.js");
+
 /**
  * Function to retrieve parameters from url
  * 
@@ -89,8 +91,9 @@ var initUI = function (frame, videoElement) {
         frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
     else {
         var videoInfo = getVideoInfo();
-        $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
-            captions = JSON.parse(response);
+        
+        CaptionUtil.getCaptions(videoInfo.id).then(function (response) {
+            captions = response;
             videoInfo.captionLength = captions.length;
             frame.contentWindow.postMessage(
                 {
@@ -101,6 +104,18 @@ var initUI = function (frame, videoElement) {
                 },
                 "*");
         });
+        // $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
+        //     captions = JSON.parse(response);
+        //     videoInfo.captionLength = captions.length;
+        //     frame.contentWindow.postMessage(
+        //         {
+        //             application: 'video_caption',
+        //             type: "UI_INIT",
+        //             success: true,
+        //             message: JSON.stringify(videoInfo)
+        //         },
+        //         "*");
+        // });
     }
 
     // Show UI if ready
@@ -132,11 +147,11 @@ var registerVideoTask = function (task) {
             // Set current caption
             if (currentCaption && time < currentCaption.end && time >= currentCaption.start) {/* do nothing if caption doesn't change*/ }
             else {
+                captionChanged = true;
                 for (var i = 0; i < captions.length; i++) {
                     var c = captions[i];
                     if (time < c.end && time >= c.start) {
                         currentCaption = c;
-                        captionChanged = true;
                         break;
                     }
                 }
@@ -152,7 +167,7 @@ var registerVideoTask = function (task) {
             for (var i = 0; i < VideoTasks.length; i++) {
                 VideoTasks[i](videoInfo);
             }
-        }, 1000);
+        }, 500);
     }
 
 }
@@ -215,20 +230,22 @@ var openEditor = function (frameDom, videoDom) {
     chrome.runtime.sendMessage({ application: "video_caption", type: "OPEN_EDITOR" }, function (response) {
         console.log(response.success);
     });
-    
-    var editorDom = document.getElementById("video_caption_editor_" + chrome.runtime.id);
-    
+
+    //var editorDom = $("#video_caption_editor_" + chrome.runtime.id)[0];
+
     registerVideoTask(function (videoInfo) {
         if (videoInfo.captionChanged) {
             // send the video information to editor
-            editorDom.contentWindow.postMessage({
+            console.log("sending sync editor message");
+            document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
                 application: "video_caption", type: "SYNC_EDITOR", message: {
-                    time: time
+                    time: videoInfo.time,
+                    captionId: currentCaption.id
                 }
             }, "*");
         }
     });
-    
+
     // Set an interval to send the video information(current time) to editor 
     // setInterval(function () {
     //     var time = video.currentTime * 1000;
@@ -278,87 +295,93 @@ window.addEventListener("message", function (event) {
         case "OPEN_EDITOR":
             openEditor(frame, video);
             break;
+        case "EDITOR_READY":
+            var videoInfo = getVideoInfo();
+            videoInfo.captions = captions;
+            document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
+                application: "video_caption", type: "EDITOR_INIT", message: videoInfo
+            }, "*");
         default:
             break;
     }
+
+    /*
+        if (event.data.type == "UI_HIDE") {
     
-/*
-    if (event.data.type == "UI_HIDE") {
-
-    }
-    else if (event.data.type == "UI_SHOW") {
-
-    }
-    else if (event.data.type == "UI_READY") {
-        if (!isVideoPage())
-            frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
-        else {
-            var videoInfo = getVideoInfo();
-            $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
-                captions = JSON.parse(response);
-                videoInfo.captionLength = captions.length;
-                frame.contentWindow.postMessage(
-                    {
-                        application: 'video_caption',
-                        type: "UI_INIT",
-                        success: true,
-                        message: JSON.stringify(videoInfo)
-                    },
-                    "*");
-            });
         }
-
-        // Show UI if ready
-        if (!frame.dataset.ready && frame.dataset.shown != "true") {
-            showUI();
+        else if (event.data.type == "UI_SHOW") {
+    
         }
-        frame.dataset.ready = "true";
-    }
-    else if (event.data.type == "LOAD_CAPTION") {
-        var $caption = $("<p></p>");
-        $caption.css("position", "absolute");
-        $caption.css("bottom", "45px");
-        $caption.css("width", "100%");
-        $caption.css("padding-left", "10%");
-        $caption.css("padding-right", "10%")
-        $caption.css('z-index', '10000');
-        $caption.css("text-align", 'center');
-        $caption.css('font-size', '22px');
-        $caption.css('box-sizing', 'border-box');
-        $(".html5-video-player").append($caption);
-
-        setInterval(function () {
-            var time = video.currentTime * 1000;
-            if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
-                return;
+        else if (event.data.type == "UI_READY") {
+            if (!isVideoPage())
+                frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
             else {
-                for (var i = 0; i < captions.length; i++) {
-                    var c = captions[i];
-                    if (time < c.end && time >= c.start) {
-                        currentCaption = c;
-                        $caption.text(c.text);
-                        return;
+                var videoInfo = getVideoInfo();
+                $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
+                    captions = JSON.parse(response);
+                    videoInfo.captionLength = captions.length;
+                    frame.contentWindow.postMessage(
+                        {
+                            application: 'video_caption',
+                            type: "UI_INIT",
+                            success: true,
+                            message: JSON.stringify(videoInfo)
+                        },
+                        "*");
+                });
+            }
+    
+            // Show UI if ready
+            if (!frame.dataset.ready && frame.dataset.shown != "true") {
+                showUI();
+            }
+            frame.dataset.ready = "true";
+        }
+        else if (event.data.type == "LOAD_CAPTION") {
+            var $caption = $("<p></p>");
+            $caption.css("position", "absolute");
+            $caption.css("bottom", "45px");
+            $caption.css("width", "100%");
+            $caption.css("padding-left", "10%");
+            $caption.css("padding-right", "10%")
+            $caption.css('z-index', '10000');
+            $caption.css("text-align", 'center');
+            $caption.css('font-size', '22px');
+            $caption.css('box-sizing', 'border-box');
+            $(".html5-video-player").append($caption);
+    
+            setInterval(function () {
+                var time = video.currentTime * 1000;
+                if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
+                    return;
+                else {
+                    for (var i = 0; i < captions.length; i++) {
+                        var c = captions[i];
+                        if (time < c.end && time >= c.start) {
+                            currentCaption = c;
+                            $caption.text(c.text);
+                            return;
+                        }
                     }
                 }
-            }
-        }, 300);
-    }
-    else if (event.data.type == "OPEN_EDITOR") {
-        chrome.runtime.sendMessage({ application: "video_caption", type: "OPEN_EDITOR" }, function (response) {
-            console.log(response.success);
-        });
-
-        setInterval(function () {
-            var time = video.currentTime * 1000;
-            document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
-                application: "video_caption", type: "SYNC_EDITOR", message: {
-                    time: time
-                }
-            }, "*")
-
-        }, 1000);
-    }
-    */
+            }, 300);
+        }
+        else if (event.data.type == "OPEN_EDITOR") {
+            chrome.runtime.sendMessage({ application: "video_caption", type: "OPEN_EDITOR" }, function (response) {
+                console.log(response.success);
+            });
+    
+            setInterval(function () {
+                var time = video.currentTime * 1000;
+                document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
+                    application: "video_caption", type: "SYNC_EDITOR", message: {
+                        time: time
+                    }
+                }, "*")
+    
+            }, 1000);
+        }
+        */
 }, false);
 
 
