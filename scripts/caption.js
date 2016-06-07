@@ -1,6 +1,7 @@
 // main.js
 var moment = require("moment");
 var CaptionUtil = {};
+CaptionUtil.server = "https://datascience.ischool.syr.edu/";
 CaptionUtil.getCaptions = function (videoId) {
     var c = [];
     var p = new Promise(function (resolve, reject) {
@@ -130,15 +131,78 @@ CaptionUtil.formatCaptionData = function(captions){
     });
     return captions;
 }
+/**
+ * Add a bookmark to a caption
+ * @param  {object} caption
+ */
 
-CaptionUtil.scrollTo = function($caption) {
-    if(!$caption.is(':visible'))
-        return;
-        
-    console.log($caption.position().left);
-    console.log($caption[0].offsetLeft);
-    $('#captions').stop(true).animate({scrollLeft: $caption[0].offsetLeft - 40}, 0);
+CaptionUtil.doBookmark = function(caption){
+    return $.post(CaptionUtil.server + "api/bookmark", {caption_id: caption.id});
 }
+
+/**
+ * Delete a bookmark from a caption
+ * @param  {object} caption
+ */
+CaptionUtil.deleteBookmark = function(caption){
+    $.ajax({
+        url: CaptionUtil.server + "api/bookmark",
+        data: {caption_id: caption.id},
+        type: 'DELETE'
+    });
+}
+
+/**
+ * Add a inaccessible to a caption
+ * @param  {object} caption
+ */
+
+CaptionUtil.doInaccessible = function(caption){
+    return $.post(CaptionUtil.server + "api/inaccessible", {caption_id: caption.id});
+}
+
+/**
+ * Delete a inaccessible from a caption
+ * @param  {object} caption
+ */
+CaptionUtil.deleteInaccessible = function(caption){
+    $.ajax({
+        url: CaptionUtil.server + "api/inaccessible",
+        data: {caption_id: caption.id},
+        type: 'DELETE'
+    });
+}
+
+/**
+ * Add a question to a caption
+ * @param  {object} caption
+ */
+
+CaptionUtil.doQuestion = function(caption){
+    return $.post(CaptionUtil.server + "api/question", {caption_id: caption.id});
+}
+
+/**
+ * Delete a question from a caption
+ * @param  {object} caption
+ */
+CaptionUtil.deleteQuestion = function(caption){
+    $.ajax({
+        url: CaptionUtil.server + "api/inaccessible",
+        data: {caption_id: caption.id},
+        type: 'DELETE'
+    });
+}
+
+
+// CaptionUtil.scrollTo = function($caption) {
+//     if(!$caption.is(':visible'))
+//         return;
+        
+//     console.log($caption.position().left);
+//     console.log($caption[0].offsetLeft);
+//     $('#captions').stop(true).animate({scrollLeft: $caption[0].offsetLeft - 40}, 0);
+// }
 
 
 module.exports = CaptionUtil;

@@ -91,7 +91,7 @@ var initUI = function (frame, videoElement) {
         frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
     else {
         var videoInfo = getVideoInfo();
-        
+
         CaptionUtil.getCaptions(videoInfo.id).then(function (response) {
             captions = response;
             videoInfo.captionLength = captions.length;
@@ -199,22 +199,7 @@ var loadCaption = function (frameDom, videoDom) {
             $caption.text(videoInfo.currentCaption.text);
         }
     });
-    // Change the caption dyanmically over time
-    // setInterval(function () {
-    //     var time = video.currentTime * 1000;
-    //     if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
-    //         return;
-    //     else {
-    //         for (var i = 0; i < captions.length; i++) {
-    //             var c = captions[i];
-    //             if (time < c.end && time >= c.start) {
-    //                 currentCaption = c;
-    //                 $caption.text(c.text);
-    //                 return;
-    //             }
-    //         }
-    //     }
-    // }, 1000);
+
 }
 
 /**
@@ -245,24 +230,34 @@ var openEditor = function (frameDom, videoDom) {
             }, "*");
         }
     });
+}
 
-    // Set an interval to send the video information(current time) to editor 
-    // setInterval(function () {
-    //     var time = video.currentTime * 1000;
-    //     // the time of the video hasn't changed
-    //     if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
-    //         return;
-    //     else {
+var editorDoAction = function (caption, type) {
+    debugger;
+    switch (type) {
+        case "inaccessible":
+            CaptionUtil.doInaccessible(caption.id).done(function (response) {
+                caption.inaccessibles.push({
 
-    //     }
-    //     // send the video information to editor
-    //     document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
-    //         application: "video_caption", type: "SYNC_EDITOR", message: {
-    //             time: time
-    //         }
-    //     }, "*")
+                });
+                document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
+                    application: "video_caption", type: "UPDATE_CAPTION", message: {
+                        caption: caption
+                    }
+                }, "*");
+            });
+            break;
+        case "bookmark":
+            CaptionUtil.doBookmark(caption.id);
+            break;
+        case "question":
+            CaptionUtil.doQuestion(caption.id);
+            break;
+        default:
+            break;
+    }
 
-    // }, 1000);
+
 }
 
 // Add listerners to window message system
@@ -301,6 +296,10 @@ window.addEventListener("message", function (event) {
             document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
                 application: "video_caption", type: "EDITOR_INIT", message: videoInfo
             }, "*");
+            break;
+        case "EDITOR_DO_ACTION":
+            editorDoAction(event.data.message.caption, event.data.message.type);
+            break;
         default:
             break;
     }

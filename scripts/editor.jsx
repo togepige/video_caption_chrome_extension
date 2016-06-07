@@ -1,7 +1,7 @@
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var CaptionUtil = require("./caption.js");
+var EditorControl = require("./editor_control.js");
 
 require("../public/jquery.mousewheel.min.js")
 
@@ -9,6 +9,10 @@ var CaptionBox = React.createClass({
     getInitialState: function () {
         // Get initial state from properties
         return { caption: this.props.caption };
+    },
+    doAction: function(actionType){
+        window.parent.postMessage({ application: 'video_caption', type: "EDITOR_DO_ACTION", message: {type: actionType, caption: this.state.caption}
+        }, "*");
     },
     getComments: function () {
         var commentClass = function (comment) {
@@ -50,15 +54,17 @@ var CaptionBox = React.createClass({
             return className;
         }
 
-
         return (<div className="icon-count-container">
-            <div className={inaccessibleClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="report caption error">
+            <div className={ inaccessibleClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="report caption error" 
+               onClick={ that.doAction.bind(this, "inaccessible") } >
                 <span className="inaccessible-count-number icon-count-number">{this.state.caption.inaccessibles.length}</span>
             </div>
-            <div className={bookmarkClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="add a bookmark">
+            <div className={bookmarkClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="add a bookmark"
+             onClick={ that.doAction.bind(this, "bookmark") }>
                 <span className="bookmark-count-number icon-count-number">{this.state.caption.bookmarks.length}</span>
             </div>
-            <div className={questionClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="ask for help">
+            <div className={questionClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="ask for help"
+             onClick={ that.doAction.bind(this, "question") }>
                 <span className="question-count-number icon-count-number">{this.state.caption.questions.length}</span>
             </div>
         </div>);
@@ -116,12 +122,13 @@ var CaptionBox = React.createClass({
 });
 
 var Captions = React.createClass({
+    captionMapping: {},
     componentWillUpdate: function (nextProps, nextState) {
         //console.log(nextProps.  )
         if (nextState.currentCaptionId != this.state.currentCaptionId) {
             var caption = this.state.captionMapping[nextState.currentCaptionId][0];
-            var component = this.state.captionMapping[nextState.currentCaptionId][1];
-            CaptionUtil.scrollTo($("#" + caption.id));
+            var component = this.captionMapping[nextState.currentCaptionId][1];
+            EditorControl.scrollTo(caption);
         }
     },
     getInitialState: function () {
@@ -130,8 +137,12 @@ var Captions = React.createClass({
     captionBlocks: function () {
         var blocks = [];
         for (var i = 0; i < this.state.captions.length; i++) {
-            var captionComponent = <CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]} />;
-            this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i], captionComponent];
+            this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i]];
+            //this.captionMapping[this.state.captions[i].id] = [this.state.captions[i]];
+
+            var captionComponent = <CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]} 
+                ref={(ref) => { this.captionMapping[ref.state.caption.id] = ref; } }/>;
+            //this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i], captionComponent];
             blocks.push(captionComponent);
         }
         if (this.state.captions.length && !this.state.currentCaptionId) {
@@ -188,8 +199,6 @@ var Captions = React.createClass({
     }
 });
 
-
-
 var captionsComponent = <Captions />;
 captionsComponent = ReactDOM.render(
     captionsComponent,
@@ -203,24 +212,12 @@ window.addEventListener("message", function (event) {
         // Sync the editor based on the time information from content script
         var syncData = event.data.message;
         console.log(syncData.captionId);
-        
         captionsComponent.setState({ currentCaptionId: syncData.captionId });
-        // if (captionsComponent.state.captionMapping) {
-        //     var currentCaption = captionsComponent.state.captionMapping[captionsComponent.state.currentCaptionId][0];
-        //     if (syncData.time < currentCaption.end && syncData.time >= currentCaption.start) {
-        //         return;
-        //     }
-        // }
-        // for (var key in captionsComponent.state.captionMapping) {
-        //     var caption = captionsComponent.state.captionMapping[key][0];
-        //     var component = captionsComponent.state.captionMapping[key][1];
-        //     if (syncData.time < caption.end && syncData.time >= caption.start) {
-        //         console.log(caption.id);
-        //         //captionsComponent.state.currentCaptionId = caption.id;
-        //         captionsComponent.setState({ currentCaptionId: caption.id });
-
-        //         return;
-        //     }
-        // }
+    }
+    else if(event.data.application == "video_caption" && event.data.type == "UPDATE_CAPTION"){
+        captionsComponent.captionMapping[event.data.message.caption.id].setState({caption: event.data.message.caption});
+        //captionsComponent.setState({ currentCaptionId: syncData.captionId });
     }
 });
+
+
