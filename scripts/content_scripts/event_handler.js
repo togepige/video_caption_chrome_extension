@@ -15,7 +15,7 @@ TaskInterval = null;
 VideoTasks = [];
 
 CaptionUtil = require("../caption.js");
-
+UserUtil = require("../user.js");
 /**
  * Function to retrieve parameters from url
  * 
@@ -104,18 +104,6 @@ var initUI = function (frame, videoElement) {
                 },
                 "*");
         });
-        // $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
-        //     captions = JSON.parse(response);
-        //     videoInfo.captionLength = captions.length;
-        //     frame.contentWindow.postMessage(
-        //         {
-        //             application: 'video_caption',
-        //             type: "UI_INIT",
-        //             success: true,
-        //             message: JSON.stringify(videoInfo)
-        //         },
-        //         "*");
-        // });
     }
 
     // Show UI if ready
@@ -232,26 +220,41 @@ var openEditor = function (frameDom, videoDom) {
     });
 }
 
+/**
+ * Send message to editor to update the caption
+ * @param  {object} caption
+ */
+var updateCaption = function (caption) {
+    var captions = [caption];
+    captions = CaptionUtil.formatCaptionData(captions);
+
+    document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
+        application: "video_caption", type: "UPDATE_CAPTION", message: {
+            caption: captions[0]
+        }
+    }, "*");
+}
+
 var editorDoAction = function (caption, type) {
-    debugger;
+    var mockObj = { created_by: UserUtil.currentUser.id};
     switch (type) {
         case "inaccessible":
-            CaptionUtil.doInaccessible(caption.id).done(function (response) {
-                caption.inaccessibles.push({
-
-                });
-                document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
-                    application: "video_caption", type: "UPDATE_CAPTION", message: {
-                        caption: caption
-                    }
-                }, "*");
+            CaptionUtil.doInaccessible(caption).done(function (response) {
+                caption.inaccessibles.push(mockObj);
+                updateCaption(caption);
             });
             break;
         case "bookmark":
-            CaptionUtil.doBookmark(caption.id);
+            CaptionUtil.doBookmark(caption).done(function (response) {
+                caption.bookmarks.push(mockObj);
+                updateCaption(caption);
+            });
             break;
         case "question":
-            CaptionUtil.doQuestion(caption.id);
+            CaptionUtil.doQuestion(caption).done(function (response) {
+                caption.questions.push(mockObj);
+                updateCaption(caption);
+            });
             break;
         default:
             break;
@@ -304,83 +307,6 @@ window.addEventListener("message", function (event) {
             break;
     }
 
-    /*
-        if (event.data.type == "UI_HIDE") {
-    
-        }
-        else if (event.data.type == "UI_SHOW") {
-    
-        }
-        else if (event.data.type == "UI_READY") {
-            if (!isVideoPage())
-                frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
-            else {
-                var videoInfo = getVideoInfo();
-                $.get("https://datascience.ischool.syr.edu/api/caption?hash=" + videoInfo.id).done(function (response) {
-                    captions = JSON.parse(response);
-                    videoInfo.captionLength = captions.length;
-                    frame.contentWindow.postMessage(
-                        {
-                            application: 'video_caption',
-                            type: "UI_INIT",
-                            success: true,
-                            message: JSON.stringify(videoInfo)
-                        },
-                        "*");
-                });
-            }
-    
-            // Show UI if ready
-            if (!frame.dataset.ready && frame.dataset.shown != "true") {
-                showUI();
-            }
-            frame.dataset.ready = "true";
-        }
-        else if (event.data.type == "LOAD_CAPTION") {
-            var $caption = $("<p></p>");
-            $caption.css("position", "absolute");
-            $caption.css("bottom", "45px");
-            $caption.css("width", "100%");
-            $caption.css("padding-left", "10%");
-            $caption.css("padding-right", "10%")
-            $caption.css('z-index', '10000');
-            $caption.css("text-align", 'center');
-            $caption.css('font-size', '22px');
-            $caption.css('box-sizing', 'border-box');
-            $(".html5-video-player").append($caption);
-    
-            setInterval(function () {
-                var time = video.currentTime * 1000;
-                if (currentCaption && time < currentCaption.end && time >= currentCaption.start)
-                    return;
-                else {
-                    for (var i = 0; i < captions.length; i++) {
-                        var c = captions[i];
-                        if (time < c.end && time >= c.start) {
-                            currentCaption = c;
-                            $caption.text(c.text);
-                            return;
-                        }
-                    }
-                }
-            }, 300);
-        }
-        else if (event.data.type == "OPEN_EDITOR") {
-            chrome.runtime.sendMessage({ application: "video_caption", type: "OPEN_EDITOR" }, function (response) {
-                console.log(response.success);
-            });
-    
-            setInterval(function () {
-                var time = video.currentTime * 1000;
-                document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
-                    application: "video_caption", type: "SYNC_EDITOR", message: {
-                        time: time
-                    }
-                }, "*")
-    
-            }, 1000);
-        }
-        */
 }, false);
 
 

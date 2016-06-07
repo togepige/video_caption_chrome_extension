@@ -1,6 +1,8 @@
 // main.js
 var moment = require("moment");
 var CaptionUtil = {};
+var UserUtil = require("./user.js");
+
 CaptionUtil.server = "https://datascience.ischool.syr.edu/";
 CaptionUtil.getCaptions = function (videoId) {
     var c = [];
@@ -54,7 +56,8 @@ CaptionUtil.getCaptions = function (videoId) {
 
 
 CaptionUtil.formatCaptionData = function(captions){
-    var currentUserId = localStorage.getItem('user.id');
+    
+    var currentUserId = UserUtil.currentUser.id;
     $.map(captions, function (caption) {
         var msToTime = function (s) {
             function addZ(n) {

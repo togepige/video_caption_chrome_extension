@@ -122,26 +122,25 @@ var CaptionBox = React.createClass({
 });
 
 var Captions = React.createClass({
-    captionMapping: {},
+    captionComponents: {},
+    captionHash: {},
     componentWillUpdate: function (nextProps, nextState) {
         //console.log(nextProps.  )
         if (nextState.currentCaptionId != this.state.currentCaptionId) {
-            var caption = this.state.captionMapping[nextState.currentCaptionId][0];
-            var component = this.captionMapping[nextState.currentCaptionId][1];
+            var caption = this.captionHash[nextState.currentCaptionId];
+            var component = this.captionComponents[nextState.currentCaptionId];
             EditorControl.scrollTo(caption);
         }
     },
     getInitialState: function () {
-        return { captions: [], captionMapping: {}, currentCaptionId: 0 };
+        return { captions: [], currentCaptionId: 0 };
     },
     captionBlocks: function () {
         var blocks = [];
         for (var i = 0; i < this.state.captions.length; i++) {
-            this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i]];
-            //this.captionMapping[this.state.captions[i].id] = [this.state.captions[i]];
-
+            this.captionHash[this.state.captions[i].id] = this.state.captions[i];
             var captionComponent = <CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]} 
-                ref={(ref) => { this.captionMapping[ref.state.caption.id] = ref; } }/>;
+                ref={(ref) => { this.captionComponents[ref.state.caption.id] = ref; } }/>;
             //this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i], captionComponent];
             blocks.push(captionComponent);
         }
@@ -215,7 +214,7 @@ window.addEventListener("message", function (event) {
         captionsComponent.setState({ currentCaptionId: syncData.captionId });
     }
     else if(event.data.application == "video_caption" && event.data.type == "UPDATE_CAPTION"){
-        captionsComponent.captionMapping[event.data.message.caption.id].setState({caption: event.data.message.caption});
+        captionsComponent.captionComponents[event.data.message.caption.id].setState({caption: event.data.message.caption});
         //captionsComponent.setState({ currentCaptionId: syncData.captionId });
     }
 });
