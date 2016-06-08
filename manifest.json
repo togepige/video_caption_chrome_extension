@@ -27,7 +27,8 @@
     ],
     "background": {
         "scripts": [
-            "scripts/background/background.js"
+            "scripts/background/background.js",
+            "scripts/background/native_message_test.js"
         ]
     },
     "browser_action": {
@@ -37,7 +38,8 @@
     "permissions": [
         "activeTab",
         "https://ajax.googleapis.com/",
-        "https://datascience.ischool.syr.edu/*"
+        "https://datascience.ischool.syr.edu/*",
+        "nativeMessaging"
     ],
     
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
