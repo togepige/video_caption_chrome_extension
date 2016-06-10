@@ -16,7 +16,8 @@
                 "<all_urls>"
             ],
             "js": [
-                "public/jquery-2.2.4.js", "public/velocity.js", "scripts/content_scripts/event_handler.js", "/public/jquery-ui/jquery-ui.js"
+                "public/jquery-2.2.4.js", "public/velocity.js", "scripts/content_scripts/event_handler.js", "/public/jquery-ui/jquery-ui.js",
+                "scripts/content_scripts/voice_command.js"
             ],
             "css": [
               "styles/contents.css"          
@@ -27,7 +28,8 @@
     ],
     "background": {
         "scripts": [
-            "scripts/background/background.js"
+            "scripts/background/background.js",
+            "scripts/background/voice_command.js"
         ]
     },
     "browser_action": {
@@ -37,7 +39,8 @@
     "permissions": [
         "activeTab",
         "https://ajax.googleapis.com/",
-        "https://datascience.ischool.syr.edu/*"
+        "https://datascience.ischool.syr.edu/*",
+        "nativeMessaging"
     ],
     
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
