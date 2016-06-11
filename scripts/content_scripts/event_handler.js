@@ -236,7 +236,7 @@ var updateCaption = function (caption) {
 }
 
 var editorDoAction = function (caption, type) {
-    var mockObj = { created_by: UserUtil.currentUser.id};
+    var mockObj = { created_by: UserUtil.currentUser.id };
     switch (type) {
         case "inaccessible":
             CaptionUtil.doInaccessible(caption).done(function (response) {
@@ -262,6 +262,55 @@ var editorDoAction = function (caption, type) {
 
 
 }
+
+/**
+ * Show header notification
+ * 
+ * @param  {object} options
+ */
+var showMessage = function (options) {
+    var $container = $('#caption-notification-container');
+    if (!$('#caption-notification-container').length) {
+        $container = $('<div id="caption-notification-container">');
+        $('body').append($container);
+    }
+    var element = '<div class="caption-notification {type} hidden">'
+        + '<span clas="message">{message}</span>'
+        + '<button class="close"><span aria-hidden="true">×</span></button>'
+        + '</div>';
+
+    var element = element.replace('{message}', options.message).replace('{type}', options.type);
+    var $element = $(element)
+    if (options.id) {
+        $element.attr('id', options.id);
+    }
+    if (options.remove) {
+        $('#' + options.remove).remove();
+    }
+    $element.find('.close').click(function () {
+        $(this).closest('.caption-notification').remove();
+    });
+
+    $container.append($element);
+    $element.slideDown("fast");
+}
+
+/**
+ * This function receive the message from the caption editor and redirect the message 
+ * to background script to active the voice command application
+ */
+var activeVoiceCommand = function () {
+    chrome.runtime.sendMessage({ application: "video_caption", type: "VC_ACTIVE" }, function (response) {
+        if (response.success) {
+            showMessage({ type: "warning", message: 'You can press the ctrl key to start speaking now...' });
+            registerVCHotKey();
+        }
+        else
+            showMessage({ type: "warning", message: 'Obtaining some resources, it may take few seconds...', id: 'vc-waiting' });
+
+    });
+}
+
 
 // Add listerners to window message system
 window.addEventListener("message", function (event) {
@@ -303,10 +352,89 @@ window.addEventListener("message", function (event) {
         case "EDITOR_DO_ACTION":
             editorDoAction(event.data.message.caption, event.data.message.type);
             break;
+        case "ACTIVE_VOICE_COMMAND":
+            activeVoiceCommand();
+            break;
+        case "NOTIFY":
+            showMessage(event.data.message);
+            break;
         default:
             break;
     }
 
 }, false);
+
+
+var controlTimeout;
+var controlCancelTimeout;
+/**
+ * This function control the hotkey of voice command
+ * It detect the ctrl press and up event to control the voice command input
+ */
+var registerVCHotKey = function () {
+    $(document).on('keydown', function (e) {
+        if (e.ctrlKey && e.key == "Control")
+            if (controlCancelTimeout != null) {
+                clearTimeout(controlCancelTimeout);
+                controlCancelTimeout = setTimeout(function () {
+                    clearInterval(controlTimeout);
+                    controlTimeout = null;
+                }, 200);
+            }
+
+        if (e.ctrlKey && controlTimeout == null) {
+            console.log('ctrl keydown');
+            controlTimeout = setTimeout(function () {
+                clearTimeout(controlCancelTimeout);
+                controlCancelTimeout = null;
+                activeCommandCapture();
+            }, 100);
+        }
+    }).on('keyup', function (e) {
+        console.log('key up');
+        if (e.key == "Control") {
+            if (controlTimeout) {
+                clearTimeout(controlTimeout);
+                controlTimeout = null;
+            }
+            deActiveCommandCapture();
+        }
+    })
+};
+
+function activeCommandCapture() {
+    console.log("Active voice command capture");
+    chrome.runtime.sendMessage({ application: "video_caption", type: "VC_SPEAKING" }, function (response) {
+        //console.log(response.success);
+    });
+}
+
+function deActiveCommandCapture() {
+    console.log("Deactive voice command capture");
+    chrome.runtime.sendMessage({ application: "video_caption", type: "VC_STOP_SPEAKING" }, function (response) {
+        //console.log(response.success);
+    });
+}
+
+chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+        console.log(sender.tab ?
+            "from a content script:" + sender.tab.url :
+            "from the extension");
+        if (request.application == "video_caption") {
+            switch (request.type) {
+                case "VC_READY":
+                    showMessage({ type: "warning", message: 'You can press the ctrl key to start speaking now...', remove: 'vc-waiting' });
+                    registerVCHotKey();
+                    break;
+                case "VC_MAKE_BOOKMARK":
+                    debugger;
+                    break;
+                default:
+                    break;
+            }
+        }
+        sendResponse({ succes: true });
+    });
 
 

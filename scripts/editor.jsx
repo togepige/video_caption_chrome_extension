@@ -10,8 +10,9 @@ var CaptionBox = React.createClass({
         // Get initial state from properties
         return { caption: this.props.caption };
     },
-    doAction: function(actionType){
-        window.parent.postMessage({ application: 'video_caption', type: "EDITOR_DO_ACTION", message: {type: actionType, caption: this.state.caption}
+    doAction: function (actionType) {
+        window.parent.postMessage({
+            application: 'video_caption', type: "EDITOR_DO_ACTION", message: { type: actionType, caption: this.state.caption }
         }, "*");
     },
     getComments: function () {
@@ -55,16 +56,16 @@ var CaptionBox = React.createClass({
         }
 
         return (<div className="icon-count-container">
-            <div className={ inaccessibleClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="report caption error" 
-               onClick={ that.doAction.bind(this, "inaccessible") } >
+            <div className={ inaccessibleClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="report caption error"
+                onClick={ that.doAction.bind(this, "inaccessible") } >
                 <span className="inaccessible-count-number icon-count-number">{this.state.caption.inaccessibles.length}</span>
             </div>
             <div className={bookmarkClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="add a bookmark"
-             onClick={ that.doAction.bind(this, "bookmark") }>
+                onClick={ that.doAction.bind(this, "bookmark") }>
                 <span className="bookmark-count-number icon-count-number">{this.state.caption.bookmarks.length}</span>
             </div>
             <div className={questionClass() } data-toggle="tooltip" data-placement="bottom" title="" data-original-title="ask for help"
-             onClick={ that.doAction.bind(this, "question") }>
+                onClick={ that.doAction.bind(this, "question") }>
                 <span className="question-count-number icon-count-number">{this.state.caption.questions.length}</span>
             </div>
         </div>);
@@ -133,14 +134,14 @@ var Captions = React.createClass({
         }
     },
     getInitialState: function () {
-        return { captions: [], currentCaptionId: 0 };
+        return { captions: [], currentCaptionId: 0, voiceCommand: false };
     },
     captionBlocks: function () {
         var blocks = [];
         for (var i = 0; i < this.state.captions.length; i++) {
             this.captionHash[this.state.captions[i].id] = this.state.captions[i];
-            var captionComponent = <CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]} 
-                ref={(ref) => { this.captionComponents[ref.state.caption.id] = ref; } }/>;
+            var captionComponent = <CaptionBox key={this.state.captions[i].number}  caption={this.state.captions[i]}
+                ref={(ref) => { if (ref) this.captionComponents[ref.state.caption.id] = ref; } }/>;
             //this.state.captionMapping[this.state.captions[i].id] = [this.state.captions[i], captionComponent];
             blocks.push(captionComponent);
         }
@@ -149,18 +150,34 @@ var Captions = React.createClass({
         }
         return blocks;
     },
+    /**
+     * This function handle the voice command toggle event
+     */
+    handleVoiceCommand() {
+        this.setState({
+            voiceCommand: !this.state.voiceCommand
+        });
+        // if checked, active voice command function
+        if (!this.state.voiceCommand) {
+            window.parent.postMessage({
+                application: 'video_caption', type: "ACTIVE_VOICE_COMMAND", message: {
+                    type: 'warning',
+                    message: 'You can press ctrl key and start speaking now...'
+                }
+            }, "*");
+        }
+    },
     componentDidMount: function () {
         var that = this;
 
         window.addEventListener("message", function (event) {
             if (event.data.application == "video_caption" && event.data.type == "EDITOR_INIT") {
                 console.log("editor_init received");
-                that.setState({captions: event.data.message.captions });
+                that.setState({ captions: event.data.message.captions });
             }
         }, false);
         window.parent.postMessage({ application: 'video_caption', type: "EDITOR_READY", message: "" }, "*");
-        
-        
+
         $(".comments").mousewheel(function (event, delta) {
             event.preventDefault();
         });
@@ -188,6 +205,15 @@ var Captions = React.createClass({
                 <a className="caption-control-arrow caption-control-arrow-right">
                     <span className="glyphicon glyphicon-chevron-right"></span>
                 </a>
+                <div id="caption-header" style={{ margin: "4px 8px", marginBottom: "0" }}>
+                    <div id="voice-command-wrapper" style={ { display: 'inline-block' } } >
+                        <div className="toggle-wrapper">
+                            <label className="toggle-label">Voice command</label>
+                            <input type="checkbox" id="voice-command" className="toggle hidden" checked={this.state.voiceCommand} onChange={this.handleVoiceCommand}/>
+                            <label htmlFor="voice-command" className="toggle-indicator"></label>
+                        </div>
+                    </div>
+                </div>
                 <div id="captions">
                     <div>
                         {this.captionBlocks() }
@@ -213,8 +239,8 @@ window.addEventListener("message", function (event) {
         console.log(syncData.captionId);
         captionsComponent.setState({ currentCaptionId: syncData.captionId });
     }
-    else if(event.data.application == "video_caption" && event.data.type == "UPDATE_CAPTION"){
-        captionsComponent.captionComponents[event.data.message.caption.id].setState({caption: event.data.message.caption});
+    else if (event.data.application == "video_caption" && event.data.type == "UPDATE_CAPTION") {
+        captionsComponent.captionComponents[event.data.message.caption.id].setState({ caption: event.data.message.caption });
         //captionsComponent.setState({ currentCaptionId: syncData.captionId });
     }
 });

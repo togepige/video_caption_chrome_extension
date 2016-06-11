@@ -14,10 +14,13 @@ EditorControl.server = "https://datascience.ischool.syr.edu/";
  * @param  {object} caption
  */
 EditorControl.scrollTo = function(caption) {
+    if(caption){
     var $caption = $("#" + caption.id);
-    if(!$caption.is(':visible'))
-        return;
-    $('#captions').stop(true).animate({scrollLeft: $caption[0].offsetLeft - 40}, 0);
+        if(!$caption.is(':visible'))
+            return;
+        $('#captions').stop(true).animate({scrollLeft: $caption[0].offsetLeft - 40}, 0);
+    }
+    
 }
 
 

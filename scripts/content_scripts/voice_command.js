@@ -9,7 +9,6 @@ var controlCancelTimeout;
 
 
 $(document).on('keydown', function (e) {
-
     if (controlCancelTimeout != null) {
         clearTimeout(controlCancelTimeout);
         controlCancelTimeout = setTimeout(function () {
@@ -32,7 +31,7 @@ $(document).on('keydown', function (e) {
 
 function activeCommandCapture() {
     console.log("Active voice command capture");
-    chrome.runtime.sendMessage({ application: "video_caption", type: "ACTIVE_VOICE_COMMAND" }, function (response) {
+    chrome.runtime.sendMessage({ application: "video_caption", type: "VC_SPEAKING" }, function (response) {
         //console.log(response.success);
     });
 }

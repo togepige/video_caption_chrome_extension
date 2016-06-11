@@ -17,7 +17,7 @@ if (!location.ancestorOrigins.contains(extensionOrigin)) {
     var width = $("video").width() + "px";
     
     var $container = $('<div style="' + 'position:absolute;top:' + topPos + ';left:' + leftPos + ';display:block;' 
-    + 'width: 890px;height:331px;z-index:2999999999;border:none;border-radius: 5px;"' + '></div>');
+    + 'width: 890px;height:340px;z-index:2999999999;border:none;border-radius: 5px;"' + '></div>');
     //$container.css("position", absolute)
     
     var $dragHandler = $('<div id="video_caption_editor_drag"></div>');

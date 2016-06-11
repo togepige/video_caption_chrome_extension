@@ -6,22 +6,39 @@
  * 
  * @author Junkai Yang
  */
+
+var clients = [];
+
 var port = null;
 
 function onNativeMessage(message) {
-    console.log("native message received: " + message);
+    console.log("Voice command native script receives: " + message.command);
+    if (message.command == "ready")
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, { application: 'video_caption', type: "VC_READY" });
+        });
+    else if (message.command == "action")
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, { application: 'video_caption', type: "action", action: message.message });
+        });
+
 }
 
 function onDisconnected() {
     console.log("Failed to connect: " + chrome.runtime.lastError.message);
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, { application: 'video_caption', type: "VC_INIT_FAILED" }, function (response) {
+            //console.log(response.farewell);
+        });
+    });
     port = null;
 }
 
 function sendNativeMessage(text) {
-    message = { "message":  text };
+    message = { "message": text };
     port.postMessage(message);
 }
-
 
 function connect() {
     var hostName = "com.jy.syr.chrome_native_message_passing";
@@ -32,13 +49,22 @@ function connect() {
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
-        //console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
-        if (request.application == "video_caption"){
-            if(request.type == "ACTIVE_VOICE_COMMAND"){
+        console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
+        if (request.application == "video_caption") {
+            if (request.type == "VC_ACTIVE") {
                 console.log("Connecting to native application");
-                connect();  
-                sendNativeMessage("ACTIVE");
-                sendResponse({ success: true });
+                if (port) {
+                    sendResponse({ success: true });
+                }
+                else {
+                    sendResponse({ success: false });
+                    connect();
+                    sendNativeMessage("ACTIVE");
+                }
+            }
+            else if (request.type == "VC_SPEAKING") {
+                console.log("SENDING SPEAKING from bg");
+                sendNativeMessage("SPEAKING");
             }
         }
     });

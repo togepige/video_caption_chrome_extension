@@ -2,7 +2,7 @@
     background-color:whitesmoke;
     border-radius:5px;
     border: 1px solid #888;
-    padding:12px;
+    padding:2px;
     position:relative;
     padding-left:30px;
     padding-right:30px;
@@ -34,7 +34,7 @@ body{
     border: 2px solid #bdc3c7;
     color:#141823;
     font-size:12px;
-    margin-top:20px;
+    margin-top: 4px;
     margin-bottom: 0;
     height:265px;
     display:inline-block;
@@ -197,4 +197,53 @@ body{
 
 .caption-control-arrow-left{
     left:0;
+}
+
+/* Toggle */
+.toggle-label{
+    vertical-align: top;
+    margin-right:6px;
+    margin-bottom:0;
+}
+.toggle-indicator{
+    position: relative;
+    display: inline-block;
+    height: 18px;
+    width: 40px;
+    background: #898989;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom:0;
+}
+
+.toggle-indicator:after {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 100px;
+  background: #fff;
+  box-shadow: 0px 3px 3px rgba(0,0,0,0.05);
+  content: '';
+  transition: all 0.3s ease;
+}
+.toggle-indicator:active:after {
+  transform: scale(1.15, 0.85);
+}
+.toggle:checked ~ label {
+  background: #74beea;
+}
+.toggle:checked ~ label:after {
+  left: 20px;
+  background: #009cda;
+}
+.toggle:disabled ~ label {
+  background: #d5d5d5;
+  pointer-events: none;
+}
+.toggle:disabled ~ label:after {
+  background: #bcbdbc;
 }

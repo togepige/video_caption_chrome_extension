@@ -66,7 +66,7 @@ module.exports = function (grunt) {
         cssmin: {
             development: {
                 files: {
-                    'build/styles/contents.css': ['public/jquery-ui/jquery-ui.css', 'styles/editor_handle.css'],
+                    'build/styles/contents.css': ['public/jquery-ui/jquery-ui.css', 'styles/editor_handle.css', 'styles/notification.css'],
                     'build/styles/menu.css': ['styles/menu.css'],
                     'build/styles/editor.css': ['styles/editor.css'],
                 }

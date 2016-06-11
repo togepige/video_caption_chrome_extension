@@ -15,9 +15,9 @@ var LoadingIndicator = React.createClass({
 
 // Close button UI component
 var CloseButton = React.createClass({
-    handleClick: function(){
-       this.props.onClose(); 
-    }, 
+    handleClick: function () {
+        this.props.onClose();
+    },
     render: function () {
         return <div id="close-button-container">
             <a id="close-button-wrapper" onClick={this.handleClick}>
@@ -70,23 +70,23 @@ var VideoInformation = React.createClass({
 
 // Menu control UI component
 var CaptionControl = React.createClass({
-    getInitialState: function(){
-        return {loaded: false};
+    getInitialState: function () {
+        return { loaded: false };
     },
-    handleLoadCaption: function(){
-        window.parent.postMessage({ application: 'video_caption', type: "LOAD_CAPTION", message: "" }, "*");  
+    handleLoadCaption: function () {
+        window.parent.postMessage({ application: 'video_caption', type: "LOAD_CAPTION", message: "" }, "*");
     },
-    handleOpenEditor: function(){
-        window.parent.postMessage({ application: 'video_caption', type: "OPEN_EDITOR", message: "" }, "*");  
+    handleOpenEditor: function () {
+        window.parent.postMessage({ application: 'video_caption', type: "OPEN_EDITOR", message: "" }, "*");
     },
-    getClass: function(){
+    getClass: function () {
         return this.props.video ? '' : 'hidden';
     },
-    getButtonText: function(){
-    },  
+    getButtonText: function () {
+    },
     render: function () {
         return (
-            <div id="control-container" className={this.getClass()}>
+            <div id="control-container" className={this.getClass() }>
                 <button id="load-caption" className="btn btn-success" onClick={this.handleLoadCaption}>Load Caption</button>
                 <button id="load-caption" className="btn btn-success" onClick={this.handleOpenEditor}>Open Caption Editor</button>
             </div>
@@ -102,7 +102,7 @@ var MenuWindow = React.createClass({
     contentClass: function () {
         return this.state.loaded ? '' : 'hidden';
     },
-    handleClose: function(){
+    handleClose: function () {
         window.parent.postMessage({ application: 'video_caption', type: "UI_HIDE", message: "" }, "*");
     },
     componentDidMount: function () {

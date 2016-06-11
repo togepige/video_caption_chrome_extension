@@ -16,8 +16,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "public/jquery-2.2.4.js", "public/velocity.js", "scripts/content_scripts/event_handler.js", "/public/jquery-ui/jquery-ui.js",
-                "scripts/content_scripts/voice_command.js"
+                "public/jquery-2.2.4.js", "public/velocity.js", "scripts/content_scripts/event_handler.js", "/public/jquery-ui/jquery-ui.js"
             ],
             "css": [
               "styles/contents.css"          
