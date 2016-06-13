@@ -259,8 +259,6 @@ var editorDoAction = function (caption, type) {
         default:
             break;
     }
-
-
 }
 
 /**
