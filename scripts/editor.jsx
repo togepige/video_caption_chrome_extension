@@ -165,6 +165,8 @@ var Captions = React.createClass({
                     message: 'You can press ctrl key and start speaking now...'
                 }
             }, "*");
+        }else{
+            window.parent.postMessage({application: 'video_caption', type: "DEACTIVE_VOICE_COMMAND"}, "*");
         }
     },
     componentDidMount: function () {

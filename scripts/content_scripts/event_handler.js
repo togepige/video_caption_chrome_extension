@@ -269,8 +269,9 @@ var editorDoAction = function (caption, type) {
  * @param  {object} options
  * @option example
  * {
- *  message: 'message text',
- *  type: 'warning'
+ *      message: 'message text',
+ *      type: 'warning',
+ *      time: 3
  * }
  */
 var showMessage = function (options) {
@@ -298,10 +299,15 @@ var showMessage = function (options) {
 
     $container.append($element);
     $element.slideDown("fast");
+    if(options.time){
+        setTimeout(function(){
+            $element.remove();
+        }, options.time)
+    }
 }
 
 /**
- * This function receive the message from the caption editor and redirect the message 
+ * This function receives the message from the caption editor and redirect the message 
  * to background script to active the voice command application
  */
 var activeVoiceCommand = function () {
@@ -315,6 +321,7 @@ var activeVoiceCommand = function () {
 
     });
 }
+
 
 
 // Add listerners to window message system
@@ -360,6 +367,9 @@ window.addEventListener("message", function (event) {
         case "ACTIVE_VOICE_COMMAND":
             activeVoiceCommand();
             break;
+        case "DEACTIVE_VOICE_COMMAND":
+            unbindVCHotkey();
+            break;
         case "NOTIFY":
             showMessage(event.data.message);
             break;
@@ -377,7 +387,7 @@ var controlCancelTimeout;
  * It detect the ctrl press and up event to control the voice command input
  */
 var registerVCHotKey = function () {
-    $(document).on('keydown', function (e) {
+    $(document).on('keydown.video_caption', function (e) {
         if (e.ctrlKey && e.key == "Control")
             if (controlCancelTimeout != null) {
                 clearTimeout(controlCancelTimeout);
@@ -395,7 +405,7 @@ var registerVCHotKey = function () {
                 activeCommandCapture();
             }, 100);
         }
-    }).on('keyup', function (e) {
+    }).on('keyup.video_caption', function (e) {
         console.log('key up');
         if (e.key == "Control") {
             if (controlTimeout) {
@@ -406,6 +416,10 @@ var registerVCHotKey = function () {
         }
     })
 };
+
+var unbindVCHotkey = function(){
+    $(document).off("keyup.video_caption").off("keydown.video_caption");
+}
 
 function activeCommandCapture() {
     console.log("Active voice command capture");
@@ -438,15 +452,15 @@ chrome.runtime.onMessage.addListener(
                     var action = request.action.substr(7).replace(' ', '').replace(/\s/g, '').toLowerCase();
                     if (action == "makebookmark") {
                         editorDoAction(VCcaption, 'bookmark');
-                        showMessage({ type: 'warning', message: 'Bookmark added successfully.' });
+                        showMessage({ type: 'warning', message: 'Bookmark added successfully.' ,time: 2000});
                     }
                     else if (action == "askquestion"){
                         editorDoAction(VCcaption, 'question');
-                        showMessage({ type: 'warning', message: 'Question added successfully.' });
+                        showMessage({ type: 'warning', message: 'Question added successfully.',time: 2000} );
                     }
                     else if (action == "reporterror"){
                         editorDoAction(VCcaption, 'inaccessible');
-                        showMessage({ type: 'warning', message: 'Error reported successfully.' });
+                        showMessage({ type: 'warning', message: 'Error reported successfully.' ,time: 2000});
                     }
                     break;
                 default:
