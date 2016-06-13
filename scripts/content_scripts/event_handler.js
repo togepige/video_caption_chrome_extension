@@ -14,6 +14,8 @@ currentCaption = null;
 TaskInterval = null;
 VideoTasks = [];
 
+VCcaption = null;
+
 CaptionUtil = require("../caption.js");
 UserUtil = require("../user.js");
 /**
@@ -265,6 +267,11 @@ var editorDoAction = function (caption, type) {
  * Show header notification
  * 
  * @param  {object} options
+ * @option example
+ * {
+ *  message: 'message text',
+ *  type: 'warning'
+ * }
  */
 var showMessage = function (options) {
     var $container = $('#caption-notification-container');
@@ -402,6 +409,7 @@ var registerVCHotKey = function () {
 
 function activeCommandCapture() {
     console.log("Active voice command capture");
+    VCcaption = currentCaption;
     chrome.runtime.sendMessage({ application: "video_caption", type: "VC_SPEAKING" }, function (response) {
         //console.log(response.success);
     });
@@ -425,14 +433,27 @@ chrome.runtime.onMessage.addListener(
                     showMessage({ type: "warning", message: 'You can press the ctrl key to start speaking now...', remove: 'vc-waiting' });
                     registerVCHotKey();
                     break;
-                case "VC_MAKE_BOOKMARK":
-                    debugger;
+                case "VC_ACTION":
+                    console.log("Received action from VC: " + request.action);
+                    var action = request.action.substr(7).replace(' ', '').replace(/\s/g, '').toLowerCase();
+                    if (action == "makebookmark") {
+                        editorDoAction(VCcaption, 'bookmark');
+                        showMessage({ type: 'warning', message: 'Bookmark added successfully.' });
+                    }
+                    else if (action == "askquestion"){
+                        editorDoAction(VCcaption, 'question');
+                        showMessage({ type: 'warning', message: 'Question added successfully.' });
+                    }
+                    else if (action == "reporterror"){
+                        editorDoAction(VCcaption, 'inaccessible');
+                        showMessage({ type: 'warning', message: 'Error reported successfully.' });
+                    }
                     break;
                 default:
                     break;
             }
         }
-        sendResponse({ succes: true });
+        sendResponse({ success: true });
     });
 
 

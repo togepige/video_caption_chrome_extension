@@ -17,11 +17,12 @@ function onNativeMessage(message) {
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             chrome.tabs.sendMessage(tabs[0].id, { application: 'video_caption', type: "VC_READY" });
         });
-    else if (message.command == "ACTION")
-    console.log("Voice command native script receives: " + message.result);
+    else if (message.command == "ACTION") {
+        console.log("Voice command native script receives: " + message.result);
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            chrome.tabs.sendMessage(tabs[0].id, { application: 'video_caption', type: "action", action: message.result });
+            chrome.tabs.sendMessage(tabs[0].id, { application: 'video_caption', type: "VC_ACTION", action: message.result });
         });
+    }
 
 }
 
