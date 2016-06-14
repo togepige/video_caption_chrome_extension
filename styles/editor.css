@@ -199,6 +199,14 @@ body{
     left:0;
 }
 
+.caption-body .btn .glyphicon{
+    display:none;
+} 
+
+.caption-body .btn.success .glyphicon{
+    display:inline-block;
+} 
+
 /* Toggle */
 .toggle-label{
     vertical-align: top;

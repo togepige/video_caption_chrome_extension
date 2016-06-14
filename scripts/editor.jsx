@@ -2,13 +2,45 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var EditorControl = require("./editor_control.js");
+var classNames = require('classnames');
 
 require("../public/jquery.mousewheel.min.js")
 
 var CaptionBox = React.createClass({
+    correctionBlurTimeout: null,
+    commentBlurTimeout: null,
     getInitialState: function () {
         // Get initial state from properties
-        return { caption: this.props.caption };
+        return {
+            caption: this.props.caption,
+            editingComment: false,
+            editingCorrection: false,
+            submittingCorrection: false,
+            submittingComment: false,
+            correction: '',
+            comment: ''
+        };
+    },
+    correctionSubmitted: function (caption) {
+        var that = this;
+        if (this.state.submittingCorrection) {
+            this.refs.correctionBtn.className += " success";
+            setTimeout(function () {
+                that.setState({ editingCorrection: false, submittingCorrection: false, caption: caption });
+                that.refs.correctionBtn.className = that.refs.correctionBtn.className.replace("success", "");
+            }, 1000)
+        }
+
+    },
+    commentSubmitted: function (caption) {
+        var that = this;
+        if (this.state.submittingComment) {
+            this.refs.commentBtn.className += " success";
+            setTimeout(function () {
+                that.setState({ editingComment: false, submittingComment: false ,caption: caption});
+                that.refs.commentBtn.className = that.refs.commentBtn.className.replace("success", "");
+            }, 1000)
+        }
     },
     doAction: function (actionType) {
         window.parent.postMessage({
@@ -26,7 +58,7 @@ var CaptionBox = React.createClass({
             var c = this.state.caption.comments[i];
             comments.push(<div key={c.id} className={commentClass(c) }>
                 <span className="comment comment-username">{c.user.email}</span>
-                c.text
+                {c.text}
                 <p className="comment-time">- {c.created_at}</p>
             </div>);
         }
@@ -70,10 +102,97 @@ var CaptionBox = React.createClass({
             </div>
         </div>);
     },
+    correctionFocus: function () {
+        this.setState({ editingCorrection: true });
+    },
+    correctionBlur: function () {
+
+        var that = this;
+        this.correctionBlurTimeout = setTimeout(function () {
+            that.setState({ editingCorrection: false });
+            that.correctionBlurTimeout = null;
+        }, 500);
+        console.log("correction blur " + this.correctionBlurTimeout);
+    },
+    commentFocus: function () {
+        this.setState({ editingComment: true });
+    },
+    commentBlur: function () {
+        var that = this;
+        this.commentBlurTimeout = setTimeout(function () {
+            that.setState({ editingComment: false });
+            that.commentBlurTimeout = null;
+        }, 500)
+    },
+    submitBtnClass: function () {
+        var base = "submit-correction-btn btn btn-success btn-sm";
+        if (!this.state.editingCorrection)
+            base += " hidden"
+
+        if (this.state.submittingCorrection)
+            base += " submitting";
+
+        return base;
+    },
+    commentBtnClass: function () {
+        var base = "submit-correction-btn btn btn-success btn-sm";
+        if (!this.state.editingComment)
+            base += " hidden"
+        if (this.state.submittingComment)
+            base += " submitting";
+
+        return base;
+    },
+    onCorrectionSubmitFocus: function () {
+        if (this.correctionBlurTimeout)
+            clearTimeout(this.correctionBlurTimeout);
+    },
+    onCommentSubmitFocus: function () {
+        if (this.commentBlurTimeout)
+            clearTimeout(this.commentBlurTimeout);
+    },
+    onCorrectionSubmitBlur: function () {
+        console.log("submit correction blur");
+        this.setState({ editingCorrection: false });
+    },
+    onCommentSubmitBlur: function () {
+        this.setState({ editingComment: false });
+    },
+    submitCorrection: function () {
+
+        console.log("correction submit " + this.correctionBlurTimeout);
+        if (this.correctionBlurTimeout)
+            clearTimeout(this.correctionBlurTimeout);
+        this.setState({ submittingCorrection: true });
+        //this.refs.correctionBtn.setAttribute("disabled", "disabled");
+
+        window.parent.postMessage({
+            application: 'video_caption', type: "SUBMIT_CORRECTION", message: {
+                text: this.state.correction,
+                caption: this.state.caption
+            }
+        }, "*");
+    },
+    submitComment: function () {
+        if (this.commentBlurTimeout)
+            clearTimeout(this.commentBlurTimeout);
+        this.setState({ submittingComment: true });
+        //this.refs.commentBtn.setAttribute("disabled", "disabled");
+
+        window.parent.postMessage({
+            application: 'video_caption', type: "SUBMIT_COMMENT", message: {
+                text: this.state.comment,
+                caption: this.state.caption
+            }
+        }, "*");
+    },
+    handleChange: function () {
+        this.state.comment = this.refs.comment.value;
+        this.state.correction = this.refs.correction.value;
+    },
     render: function () {
         return (
             <div className="caption" id={this.state.caption.id}>
-
                 <div className="row caption-header">
                     <div className="time-label-wrapper">
                         <span className="time-label">{this.state.caption.startHuman}-{this.state.caption.endHuman}</span>
@@ -87,12 +206,18 @@ var CaptionBox = React.createClass({
                         <div className="correction-input-wrapper">
                             <span className="textarea-label approved">Approved Caption</span>
                             <div>
-                                <textarea className="write write-correction" row="3" placeholder="Write the correct caption.." defaultValue={this.state.caption.correction} />
+                                <textarea className="write write-correction" row="3" placeholder="Write the correct caption.."
+                                    defaultValue={this.state.caption.correction}
+                                    onFocus={this.correctionFocus} onBlur={this.correctionBlur}
+                                    onChange={this.handleChange} ref="correction"
+                                    />
                             </div>
                             <i className="updated fa fa-check-circle-o"></i>
                             <div>
-                                <button className="submit-correction-btn btn btn-success btn-sm hidden" type="button">
-                                    <span className="glyphicon glyphicon-ok hidden" aria-hidden="true" ></span>submit
+                                <button className={this.submitBtnClass() } type="button"
+                                    onClick={this.submitCorrection} onFocus={this.onCorrectionSubmitFocus} onBlur={this.onCorrectionSubmitBlur}
+                                    ref="correctionBtn">
+                                    <span className="glyphicon glyphicon-ok" aria-hidden="true" ></span>submit
                                 </button>
                             </div>
                         </div>
@@ -100,12 +225,16 @@ var CaptionBox = React.createClass({
                     <div className="col-sm-6 comment-wrapper">
                         <span className="textarea-label">Comment</span>
                         <div>
-                            <textarea className="write write-comment" placeholder="Write a comment..." row="1"></textarea>
+                            <textarea className="write write-comment" placeholder="Write a comment..." row="1"
+                                onFocus={this.commentFocus} onBlur={this.commentBlur}
+                                onChange={this.handleChange} ref="comment"
+                                ></textarea>
                         </div>
                         <i className="updated fa fa-check-circle-o"></i>
                         <div>
-                            <button className="submit-comment-btn btn btn-success btn-sm hidden" type="button">
-                                <span className="glyphicon glyphicon-ok hidden" aria-hidden="true" ></span>submit
+                            <button className={this.commentBtnClass() } type="button"
+                                onClick={this.submitComment} onFocus={this.onCommentSubmitFocus} onBlur={this.onCommentSubmitBlur} ref="commentBtn">
+                                <span className="glyphicon glyphicon-ok" aria-hidden="true"></span>submit
                             </button>
                         </div>
                         <hr className="comment-splitter" />
@@ -165,8 +294,8 @@ var Captions = React.createClass({
                     message: 'You can press ctrl key and start speaking now...'
                 }
             }, "*");
-        }else{
-            window.parent.postMessage({application: 'video_caption', type: "DEACTIVE_VOICE_COMMAND"}, "*");
+        } else {
+            window.parent.postMessage({ application: 'video_caption', type: "DEACTIVE_VOICE_COMMAND" }, "*");
         }
     },
     componentDidMount: function () {
@@ -244,6 +373,11 @@ window.addEventListener("message", function (event) {
     else if (event.data.application == "video_caption" && event.data.type == "UPDATE_CAPTION") {
         captionsComponent.captionComponents[event.data.message.caption.id].setState({ caption: event.data.message.caption });
         //captionsComponent.setState({ currentCaptionId: syncData.captionId });
+    } else if (event.data.application == "video_caption" && event.data.type == "CORRECTION_SUBMITTED") {
+        captionsComponent.captionComponents[event.data.message.caption.id].correctionSubmitted(event.data.message.caption);
+    }
+    else if (event.data.application == "video_caption" && event.data.type == "COMMENT_SUBMITTED") {
+        captionsComponent.captionComponents[event.data.message.caption.id].commentSubmitted(event.data.message.caption);
     }
 });
 

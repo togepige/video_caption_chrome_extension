@@ -55,18 +55,17 @@ CaptionUtil.getCaptions = function (videoId) {
 }
 
 
-CaptionUtil.formatCaptionData = function(captions){
-    
+CaptionUtil.formatCaptionData = function (captions) {
     var currentUserId = UserUtil.currentUser.id;
     $.map(captions, function (caption) {
         var msToTime = function (s) {
             function addZ(n) {
-                return (n<10? '0':'') + n;
+                return (n < 10 ? '0' : '') + n;
             }
             function addZZ(n) {
                 var ret = n;
-                ret = (n<10? '0':'') + ret;
-                ret = (n<100? '0':'') + ret;
+                ret = (n < 10 ? '0' : '') + ret;
+                ret = (n < 100 ? '0' : '') + ret;
                 return ret;
             }
             var ms = s % 1000;
@@ -82,7 +81,7 @@ CaptionUtil.formatCaptionData = function(captions){
         //format human readable
         caption.startHuman = msToTime(caption.start);
         caption.endHuman = msToTime(caption.end);
-        if(caption.endHuman.substr(0,2) == "00"){
+        if (caption.endHuman.substr(0, 2) == "00") {
             caption.startHuman = caption.startHuman.substr(3);
             caption.endHuman = caption.endHuman.substr(3);
         }
@@ -95,24 +94,28 @@ CaptionUtil.formatCaptionData = function(captions){
         caption.selfBookmark = false;
         caption.selfQuestion = false;
         $.each(caption.inaccessibles, function () {
-            if(this.created_by == currentUserId) {
+            if (this.created_by == currentUserId) {
                 caption.selfInaccessible = true;
             }
         });
         $.each(caption.bookmarks, function () {
-            if(this.created_by == currentUserId) {
+            if (this.created_by == currentUserId) {
                 caption.selfBookmark = true;
             }
         });
         $.each(caption.questions, function (data) {
-            if(this.created_by == currentUserId) {
+            if (this.created_by == currentUserId) {
                 caption.selfQuestion = true;
             }
         });
 
         $.each(caption.comments, function (data) {
+            if (!this.user)
+                this.user = UserUtil.currentUser;
+
             this.fromInstructor = this.user.type == 500;
             this.ownComment = this.user.id == localStorage.getItem('user.id');
+
         });
 
         caption.totalInaccessiable = caption.inaccessibles.length > 0;
@@ -120,10 +123,10 @@ CaptionUtil.formatCaptionData = function(captions){
         caption.totalQuestion = caption.questions.length > 0;
 
         caption.currentCaption = caption.text;
-        if(caption.chosen_version){
+        if (caption.chosen_version) {
 
         }
-        else if(caption.modifications && caption.modifications.length) {
+        else if (caption.modifications && caption.modifications.length) {
             caption.currentCaption = caption.modifications[0].text;
             caption.latestModification = caption.modifications[0];
             moment(caption.latestModification.updated_at).format('MMM Do YYYY');
@@ -139,18 +142,18 @@ CaptionUtil.formatCaptionData = function(captions){
  * @param  {object} caption
  */
 
-CaptionUtil.doBookmark = function(caption){
-    return $.post(CaptionUtil.server + "api/bookmark", {caption_id: caption.id});
+CaptionUtil.doBookmark = function (caption) {
+    return $.post(CaptionUtil.server + "api/bookmark", { caption_id: caption.id });
 }
 
 /**
  * Delete a bookmark from a caption
  * @param  {object} caption
  */
-CaptionUtil.deleteBookmark = function(caption){
-    $.ajax({
+CaptionUtil.deleteBookmark = function (caption) {
+    return $.ajax({
         url: CaptionUtil.server + "api/bookmark",
-        data: {caption_id: caption.id},
+        data: { caption_id: caption.id },
         type: 'DELETE'
     });
 }
@@ -160,18 +163,18 @@ CaptionUtil.deleteBookmark = function(caption){
  * @param  {object} caption
  */
 
-CaptionUtil.doInaccessible = function(caption){
-    return $.post(CaptionUtil.server + "api/inaccessible", {caption_id: caption.id});
+CaptionUtil.doInaccessible = function (caption) {
+    return $.post(CaptionUtil.server + "api/inaccessible", { caption_id: caption.id });
 }
 
 /**
  * Delete a inaccessible from a caption
  * @param  {object} caption
  */
-CaptionUtil.deleteInaccessible = function(caption){
-    $.ajax({
+CaptionUtil.deleteInaccessible = function (caption) {
+    return $.ajax({
         url: CaptionUtil.server + "api/inaccessible",
-        data: {caption_id: caption.id},
+        data: { caption_id: caption.id },
         type: 'DELETE'
     });
 }
@@ -181,18 +184,18 @@ CaptionUtil.deleteInaccessible = function(caption){
  * @param  {object} caption
  */
 
-CaptionUtil.doQuestion = function(caption){
-    return $.post(CaptionUtil.server + "api/question", {caption_id: caption.id});
+CaptionUtil.doQuestion = function (caption) {
+    return $.post(CaptionUtil.server + "api/question", { caption_id: caption.id });
 }
 
 /**
  * Delete a question from a caption
  * @param  {object} caption
  */
-CaptionUtil.deleteQuestion = function(caption){
-    $.ajax({
-        url: CaptionUtil.server + "api/inaccessible",
-        data: {caption_id: caption.id},
+CaptionUtil.deleteQuestion = function (caption) {
+    return $.ajax({
+        url: CaptionUtil.server + "api/question",
+        data: { caption_id: caption.id },
         type: 'DELETE'
     });
 }
@@ -201,11 +204,55 @@ CaptionUtil.deleteQuestion = function(caption){
 // CaptionUtil.scrollTo = function($caption) {
 //     if(!$caption.is(':visible'))
 //         return;
-        
+
 //     console.log($caption.position().left);
 //     console.log($caption[0].offsetLeft);
 //     $('#captions').stop(true).animate({scrollLeft: $caption[0].offsetLeft - 40}, 0);
 // }
 
+CaptionUtil.submitCorrection = function (caption, correction) {
+    var origin = caption.text.trim();
+    var p = new Promise(function (resolve, reject) {
+        if (origin == correction) {
+            resolve(caption);
+        } else {
+            $.post(CaptionUtil.server + 'api/modification', {
+                data: JSON.stringify({
+                    caption_id: caption.id,
+                    text: correction
+                })
+            }).done(function (response) {
+                var modIndex = -1;
+                for (var i = 0; i < caption.modifications.length; i++) {
+                    if (caption.modifications[i].updated_by == UserUtil.currentUser.id) {
+                        modIndex = i;
+                        break;
+                    }
+                }
+                if (modIndex != -1)
+                    caption.modifications[modIndex] = JSON.parse(response);
+                resolve(caption);
+            })
+        }
+    });
+    return p;
+}
+
+
+CaptionUtil.submitComment = function (caption, comment) {
+    var origin = caption.text.trim();
+    var p = new Promise(function (resolve, reject) {
+        $.post(CaptionUtil.server + 'api/comment', {
+            data: JSON.stringify({
+                caption_id: caption.id,
+                text: comment
+            })
+        }).done(function (response) {
+            caption.comments.push(JSON.parse(response));
+            resolve(caption);
+        })
+    });
+    return p;
+}
 
 module.exports = CaptionUtil;

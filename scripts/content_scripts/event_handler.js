@@ -237,26 +237,90 @@ var updateCaption = function (caption) {
     }, "*");
 }
 
+var correctionSubmitted = function (caption) {
+    var captions = [caption];
+    captions = CaptionUtil.formatCaptionData(captions);
+
+    document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
+        application: "video_caption", type: "CORRECTION_SUBMITTED", message: {
+            caption: captions[0]
+        }
+    }, "*");
+}
+
+var commentSubmitted = function (caption) {
+    var captions = [caption];
+    captions = CaptionUtil.formatCaptionData(captions);
+
+    document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
+        application: "video_caption", type: "COMMENT_SUBMITTED", message: {
+            caption: captions[0]
+        }
+    }, "*");
+}
+
 var editorDoAction = function (caption, type) {
     var mockObj = { created_by: UserUtil.currentUser.id };
+    var found = false;
     switch (type) {
         case "inaccessible":
-            CaptionUtil.doInaccessible(caption).done(function (response) {
+            for (var i = 0; i < caption.inaccessibles.length; i++) {
+                if (caption.inaccessibles[i].created_by == UserUtil.currentUser.id) {
+                    caption.inaccessibles.splice(i, 1);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
                 caption.inaccessibles.push(mockObj);
-                updateCaption(caption);
-            });
+                CaptionUtil.doInaccessible(caption).done(function (response) {
+                    updateCaption(caption);
+                });
+            } else {
+                CaptionUtil.deleteInaccessible(caption).done(function (response) {
+                    updateCaption(caption);
+                });
+            }
             break;
         case "bookmark":
-            CaptionUtil.doBookmark(caption).done(function (response) {
+            for (var i = 0; i < caption.bookmarks.length; i++) {
+                if (caption.bookmarks[i].created_by == UserUtil.currentUser.id) {
+                    caption.bookmarks.splice(i, 1);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
                 caption.bookmarks.push(mockObj);
-                updateCaption(caption);
-            });
+                CaptionUtil.doBookmark(caption).done(function (response) {
+                    updateCaption(caption);
+                });
+
+            } else {
+                CaptionUtil.deleteBookmark(caption).done(function (response) {
+                    updateCaption(caption);
+                });
+            }
             break;
         case "question":
-            CaptionUtil.doQuestion(caption).done(function (response) {
+            for (var i = 0; i < caption.questions.length; i++) {
+                if (caption.questions[i].created_by == UserUtil.currentUser.id) {
+                    caption.questions.splice(i, 1);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
                 caption.questions.push(mockObj);
-                updateCaption(caption);
-            });
+                CaptionUtil.doQuestion(caption).done(function (response) {
+                    updateCaption(caption);
+                });
+
+            } else {
+                CaptionUtil.deleteQuestion(caption).done(function (response) {
+                    updateCaption(caption);
+                });
+            }
             break;
         default:
             break;
@@ -299,8 +363,8 @@ var showMessage = function (options) {
 
     $container.append($element);
     $element.slideDown("fast");
-    if(options.time){
-        setTimeout(function(){
+    if (options.time) {
+        setTimeout(function () {
             $element.remove();
         }, options.time)
     }
@@ -373,12 +437,30 @@ window.addEventListener("message", function (event) {
         case "NOTIFY":
             showMessage(event.data.message);
             break;
+        case "SUBMIT_CORRECTION":
+            submitCorrection(event.data.message.caption, event.data.message.text);
+            break;
+        case "SUBMIT_COMMENT":
+            submitComment(event.data.message.caption, event.data.message.text);
+            break;
         default:
             break;
     }
 
 }, false);
 
+var submitCorrection = function (caption, correction) {
+    CaptionUtil.submitCorrection(caption, correction).then(function (caption) {
+        correctionSubmitted(caption);
+    });
+}
+
+var submitComment = function (caption, comment) {
+    CaptionUtil.submitComment(caption, comment).then(function (caption) {
+        commentSubmitted(caption);
+
+    });
+}
 
 var controlTimeout;
 var controlCancelTimeout;
@@ -417,7 +499,7 @@ var registerVCHotKey = function () {
     })
 };
 
-var unbindVCHotkey = function(){
+var unbindVCHotkey = function () {
     $(document).off("keyup.video_caption").off("keydown.video_caption");
 }
 
@@ -452,15 +534,15 @@ chrome.runtime.onMessage.addListener(
                     var action = request.action.substr(7).replace(' ', '').replace(/\s/g, '').toLowerCase();
                     if (action == "makebookmark") {
                         editorDoAction(VCcaption, 'bookmark');
-                        showMessage({ type: 'warning', message: 'Bookmark added successfully.' ,time: 2000});
+                        showMessage({ type: 'warning', message: 'Bookmark added successfully.', time: 2000 });
                     }
-                    else if (action == "askquestion"){
+                    else if (action == "askquestion") {
                         editorDoAction(VCcaption, 'question');
-                        showMessage({ type: 'warning', message: 'Question added successfully.',time: 2000} );
+                        showMessage({ type: 'warning', message: 'Question added successfully.', time: 2000 });
                     }
-                    else if (action == "reporterror"){
+                    else if (action == "reporterror") {
                         editorDoAction(VCcaption, 'inaccessible');
-                        showMessage({ type: 'warning', message: 'Error reported successfully.' ,time: 2000});
+                        showMessage({ type: 'warning', message: 'Error reported successfully.', time: 2000 });
                     }
                     break;
                 default:
