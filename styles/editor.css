@@ -207,6 +207,10 @@ body{
     display:inline-block;
 } 
 
+.time-control-btn{
+    cursor: pointer;
+} 
+
 /* Toggle */
 .toggle-label{
     vertical-align: top;

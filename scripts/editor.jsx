@@ -64,6 +64,11 @@ var CaptionBox = React.createClass({
         }
         return comments;
     },
+    playCaption: function(){
+        window.parent.postMessage({
+            application: 'video_caption', type: "PLAY_CAPTION", message: { caption: this.state.caption }
+        }, "*");
+    },
     getIcons: function () {
         var that = this;
         var inaccessibleClass = function () {
@@ -196,7 +201,7 @@ var CaptionBox = React.createClass({
                 <div className="row caption-header">
                     <div className="time-label-wrapper">
                         <span className="time-label">{this.state.caption.startHuman}-{this.state.caption.endHuman}</span>
-                        <span className="time-control-btn play-btn glyphicon glyphicon-play" aria-hidden="true"></span>
+                        <span className="time-control-btn play-btn glyphicon glyphicon-play" aria-hidden="true" onClick={this.playCaption}></span>
                         <span className="time-control-btn loop-btn glyphicon glyphicon-repeat" aria-hidden="true"></span>
                     </div>
                     {this.getIcons() }

@@ -443,6 +443,11 @@ window.addEventListener("message", function (event) {
         case "SUBMIT_COMMENT":
             submitComment(event.data.message.caption, event.data.message.text);
             break;
+        case "PLAY_CAPTION":
+            playCaption(event.data.message.caption);
+            break;
+        case "LOOP_CAPTION":
+            break;
         default:
             break;
     }
@@ -460,6 +465,12 @@ var submitComment = function (caption, comment) {
         commentSubmitted(caption);
 
     });
+}
+
+var playCaption = function(caption){
+    var start = caption.start / 1000;
+    $('video')[0].currentTime = start;
+    $('video')[0].play();
 }
 
 var controlTimeout;
