@@ -203,7 +203,7 @@ body{
     display:none;
 } 
 
-.caption-body .btn.success .glyphicon{
+.caption-body .btn.submitted .glyphicon{
     display:inline-block;
 } 
 

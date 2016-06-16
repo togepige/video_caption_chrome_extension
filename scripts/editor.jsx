@@ -6,6 +6,183 @@ var classNames = require('classnames');
 
 require("../public/jquery.mousewheel.min.js")
 
+var CorrectionEditor = React.createClass({
+    blurTimeout: null,
+    submitted: function () {
+        var that = this;
+        this.setState({ submitted: true , submitting: false});
+        this.refs.submitBtn.disabled = false;
+        this.exitEdit(1500);
+    },
+    getInitialState: function () {
+        // Get initial state from properties
+        return {
+            text: this.props.text,
+            editing: false,
+            submitting: false,
+            submitted: false
+        };
+    },
+    beginEdit: function () {
+        if (this.blurTimeout) {
+            clearTimeout(this.blurTimeout);
+            blurTimeour = null;
+        }
+        this.setState({ editing: true, submitted: false, submitting: false });
+    },
+    exitEdit: function () {
+        var that = this;
+        time = time ? time : 500
+        this.blurTimeout = setTimeout(function () {
+            that.setState({ editing: false, submitting: false, submitted: false});
+            that.blurTimeout = null;
+        }, time);
+    },
+    onInputFocus: function () {
+        this.beginEdit();
+    },
+    onInputBlur: function () {
+        this.exitEdit();
+    },
+    onButtonFocus: function () {
+        this.beginEdit();
+    },
+    onButtonBlur: function () {
+        if(!this.refs.submitBtn.disabled)
+            this.exitEdit();
+    },
+    onSubmit: function () {
+        this.props.onSubmit(this.state.text);
+        this.beginEdit();
+        this.setState({ submitting: true });
+        this.refs.submitBtn.disabled = true;
+    },
+    onChange: function () {
+        this.state.text = this.refs.textarea.value;
+    },
+    submitBtnClass: function () {
+        var base = "submit-correction-btn btn btn-success btn-sm hidden";
+        if (this.state.editing || this.state.submitting || this.state.submitted)
+            base = base.replace("hidden", "");
+
+        if (this.state.submitting){
+            base += " submitting";
+        }
+        
+        if(this.state.submitted)
+            base += " submitted";
+            
+        return base;
+    },
+    render: function () {
+        return <div className="correction-input-wrapper">
+            <span className="textarea-label approved">Approved Caption</span>
+            <div>
+                <textarea className="write write-correction" row="3" placeholder="Write the correct caption.."
+                    defaultValue={this.state.text}
+                    onFocus={this.onInputFocus} onBlur={this.onInputBlur}
+                    onChange={this.onChange} ref="textarea" />
+            </div>
+            <div>
+                <button className={ this.submitBtnClass() } type="button"
+                    onClick={this.onSubmit} onFocus={this.onButtonFocus} onBlur={this.onButtonBlur} ref="submitBtn">
+                    <span className="glyphicon glyphicon-ok" aria-hidden="true" ></span>submit
+                </button>
+            </div>
+        </div>
+    }
+});
+
+
+
+var CommentEditor = React.createClass({
+    blurTimeout: null,
+    submitted: function () {
+        var that = this;
+        this.setState({ submitted: true , submitting: false, text: ''});
+        this.refs.submitBtn.disabled = false;
+        this.exitEdit(1500);
+    },
+    getInitialState: function () {
+        // Get initial state from properties
+        return {
+            text: this.props.text,
+            editing: false,
+            submitting: false,
+            submitted: false
+        };
+    },
+    beginEdit: function () {
+        if (this.blurTimeout) {
+            clearTimeout(this.blurTimeout);
+            blurTimeour = null;
+        }
+        this.setState({ editing: true, submitted: false, submitting: false });
+    },
+    exitEdit: function (time) {
+        var that = this;
+        time = time ? time : 500;
+        this.blurTimeout = setTimeout(function () {
+            that.setState({ editing: false, submitting: false, submitted: false});
+            that.blurTimeout = null;
+        }, time)
+    },
+    onInputFocus: function () {
+        this.beginEdit();
+    },
+    onInputBlur: function () {
+        this.exitEdit();
+    },
+    onButtonFocus: function () {
+        this.beginEdit();
+    },
+    onButtonBlur: function () {
+        if(!this.refs.submitBtn.disabled)
+            this.exitEdit();
+    },
+    onSubmit: function () {
+        this.props.onSubmit(this.state.text);
+        this.beginEdit();
+        this.setState({ submitting: true });
+        this.refs.submitBtn.disabled = true;
+    },
+    onChange: function () {
+        this.state.text = this.refs.textarea.value;
+    },
+    submitBtnClass: function () {
+        var base = "submit-correction-btn btn btn-success btn-sm hidden";
+        if (this.state.editing || this.state.submitting || this.state.submitted)
+            base = base.replace("hidden", "");
+
+        if (this.state.submitting){
+            base += " submitting";
+        }
+        
+        if(this.state.submitted)
+            base += " submitted";
+            
+        return base;
+    },
+    render: function () {
+        return <div className="correction-input-wrapper">
+            <span className="textarea-label approved">Comments</span>
+            <div>
+                <textarea className="write write-comment" row="3" placeholder="Write a comment.."
+                    defaultValue={this.state.text}
+                    onFocus={this.onInputFocus} onBlur={this.onInputBlur}
+                    onChange={this.onChange} ref="textarea" />
+            </div>
+            <div>
+                <button className={ this.submitBtnClass() } type="button"
+                    onClick={this.onSubmit} onFocus={this.onButtonFocus} onBlur={this.onButtonBlur} ref="submitBtn">
+                    <span className="glyphicon glyphicon-ok" aria-hidden="true" ></span>submit
+                </button>
+            </div>
+        </div>
+    }
+});
+
+
 var CaptionBox = React.createClass({
     correctionBlurTimeout: null,
     commentBlurTimeout: null,
@@ -21,27 +198,7 @@ var CaptionBox = React.createClass({
             comment: ''
         };
     },
-    correctionSubmitted: function (caption) {
-        var that = this;
-        if (this.state.submittingCorrection) {
-            this.refs.correctionBtn.className += " success";
-            setTimeout(function () {
-                that.setState({ editingCorrection: false, submittingCorrection: false, caption: caption });
-                that.refs.correctionBtn.className = that.refs.correctionBtn.className.replace("success", "");
-            }, 1000)
-        }
-
-    },
-    commentSubmitted: function (caption) {
-        var that = this;
-        if (this.state.submittingComment) {
-            this.refs.commentBtn.className += " success";
-            setTimeout(function () {
-                that.setState({ editingComment: false, submittingComment: false ,caption: caption});
-                that.refs.commentBtn.className = that.refs.commentBtn.className.replace("success", "");
-            }, 1000)
-        }
-    },
+    
     doAction: function (actionType) {
         window.parent.postMessage({
             application: 'video_caption', type: "EDITOR_DO_ACTION", message: { type: actionType, caption: this.state.caption }
@@ -64,7 +221,7 @@ var CaptionBox = React.createClass({
         }
         return comments;
     },
-    playCaption: function(){
+    playCaption: function () {
         window.parent.postMessage({
             application: 'video_caption', type: "PLAY_CAPTION", message: { caption: this.state.caption }
         }, "*");
@@ -107,94 +264,32 @@ var CaptionBox = React.createClass({
             </div>
         </div>);
     },
-    correctionFocus: function () {
-        this.setState({ editingCorrection: true });
-    },
-    correctionBlur: function () {
-
-        var that = this;
-        this.correctionBlurTimeout = setTimeout(function () {
-            that.setState({ editingCorrection: false });
-            that.correctionBlurTimeout = null;
-        }, 500);
-        console.log("correction blur " + this.correctionBlurTimeout);
-    },
-    commentFocus: function () {
-        this.setState({ editingComment: true });
-    },
-    commentBlur: function () {
-        var that = this;
-        this.commentBlurTimeout = setTimeout(function () {
-            that.setState({ editingComment: false });
-            that.commentBlurTimeout = null;
-        }, 500)
-    },
-    submitBtnClass: function () {
-        var base = "submit-correction-btn btn btn-success btn-sm";
-        if (!this.state.editingCorrection)
-            base += " hidden"
-
-        if (this.state.submittingCorrection)
-            base += " submitting";
-
-        return base;
-    },
-    commentBtnClass: function () {
-        var base = "submit-correction-btn btn btn-success btn-sm";
-        if (!this.state.editingComment)
-            base += " hidden"
-        if (this.state.submittingComment)
-            base += " submitting";
-
-        return base;
-    },
-    onCorrectionSubmitFocus: function () {
-        if (this.correctionBlurTimeout)
-            clearTimeout(this.correctionBlurTimeout);
-    },
-    onCommentSubmitFocus: function () {
-        if (this.commentBlurTimeout)
-            clearTimeout(this.commentBlurTimeout);
-    },
-    onCorrectionSubmitBlur: function () {
-        console.log("submit correction blur");
-        this.setState({ editingCorrection: false });
-    },
-    onCommentSubmitBlur: function () {
-        this.setState({ editingComment: false });
-    },
-    submitCorrection: function () {
-
-        console.log("correction submit " + this.correctionBlurTimeout);
-        if (this.correctionBlurTimeout)
-            clearTimeout(this.correctionBlurTimeout);
-        this.setState({ submittingCorrection: true });
-        //this.refs.correctionBtn.setAttribute("disabled", "disabled");
-
+    submitCorrection: function (text) {
         window.parent.postMessage({
             application: 'video_caption', type: "SUBMIT_CORRECTION", message: {
-                text: this.state.correction,
+                text: text,
                 caption: this.state.caption
             }
         }, "*");
     },
-    submitComment: function () {
-        if (this.commentBlurTimeout)
-            clearTimeout(this.commentBlurTimeout);
-        this.setState({ submittingComment: true });
-        //this.refs.commentBtn.setAttribute("disabled", "disabled");
-
+    correctionSubmitted: function (caption) {
+        console.log("correction submitted");
+        this.refs.correction.submitted();
+    },
+    submitComment: function (text) {
         window.parent.postMessage({
             application: 'video_caption', type: "SUBMIT_COMMENT", message: {
-                text: this.state.comment,
+                text: text,
                 caption: this.state.caption
             }
         }, "*");
     },
-    handleChange: function () {
-        this.state.comment = this.refs.comment.value;
-        this.state.correction = this.refs.correction.value;
+    commentSubmitted: function (caption) {
+        this.setState({ caption: caption});
+        console.log("comment submitted");
+        this.refs.comment.submitted();
     },
+    
     render: function () {
         return (
             <div className="caption" id={this.state.caption.id}>
@@ -208,40 +303,10 @@ var CaptionBox = React.createClass({
                 </div>
                 <div className="caption-body row">
                     <div className="col-sm-6 correction-wrapper">
-                        <div className="correction-input-wrapper">
-                            <span className="textarea-label approved">Approved Caption</span>
-                            <div>
-                                <textarea className="write write-correction" row="3" placeholder="Write the correct caption.."
-                                    defaultValue={this.state.caption.correction}
-                                    onFocus={this.correctionFocus} onBlur={this.correctionBlur}
-                                    onChange={this.handleChange} ref="correction"
-                                    />
-                            </div>
-                            <i className="updated fa fa-check-circle-o"></i>
-                            <div>
-                                <button className={this.submitBtnClass() } type="button"
-                                    onClick={this.submitCorrection} onFocus={this.onCorrectionSubmitFocus} onBlur={this.onCorrectionSubmitBlur}
-                                    ref="correctionBtn">
-                                    <span className="glyphicon glyphicon-ok" aria-hidden="true" ></span>submit
-                                </button>
-                            </div>
-                        </div>
+                        <CorrectionEditor text={this.state.caption.correction} onSubmit={this.submitCorrection} ref="correction"/>
                     </div>
                     <div className="col-sm-6 comment-wrapper">
-                        <span className="textarea-label">Comment</span>
-                        <div>
-                            <textarea className="write write-comment" placeholder="Write a comment..." row="1"
-                                onFocus={this.commentFocus} onBlur={this.commentBlur}
-                                onChange={this.handleChange} ref="comment"
-                                ></textarea>
-                        </div>
-                        <i className="updated fa fa-check-circle-o"></i>
-                        <div>
-                            <button className={this.commentBtnClass() } type="button"
-                                onClick={this.submitComment} onFocus={this.onCommentSubmitFocus} onBlur={this.onCommentSubmitBlur} ref="commentBtn">
-                                <span className="glyphicon glyphicon-ok" aria-hidden="true"></span>submit
-                            </button>
-                        </div>
+                        <CommentEditor text="" onSubmit={this.submitComment} ref="comment" />
                         <hr className="comment-splitter" />
                         <div className="comments">
                             {this.getComments() }
