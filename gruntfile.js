@@ -90,7 +90,7 @@ module.exports = function (grunt) {
         watch: {
             rebuild: {
                 files: ['scripts/**/*.jsx', "scripts/**/*.js", "html/**/*.html", "styles/**/*.css", "minifest.json"],
-                tasks: ['copy', 'cssmin', 'browserify:development', 'processhtml']
+                tasks: ['clean:build', 'copy', 'cssmin', 'babel', 'processhtml', 'browserify', 'clean:jsx']
             }
         },
         babel: {
@@ -139,5 +139,5 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('default', ['clean:build', 'copy', 'cssmin', 'babel', 'processhtml', 'browserify', 'clean:jsx', 'watch']);
+    grunt.registerTask('default', ['clean:build', 'copy', 'cssmin', 'babel', 'processhtml', 'browserify', 'clean:jsx']);
 };
