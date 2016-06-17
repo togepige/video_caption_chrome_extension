@@ -13,29 +13,10 @@ captions = [];
 currentCaption = null;
 TaskInterval = null;
 VideoTasks = [];
-
 VCcaption = null;
 
 CaptionUtil = require("../caption.js");
 UserUtil = require("../user.js");
-/**
- * Function to retrieve parameters from url
- * 
- * @author Junkai Yang
- * @param  {String} name - parameter name
- * @param  {String} url
- * @returns {String}
- * @example
- * var param = gup("q", "www.google.com?q=12345"); // param = "12345"
- */
-function gup(name, url) {
-    if (!url) url = location.href;
-    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regexS = "[\\?&]" + name + "=([^&#]*)";
-    var regex = new RegExp(regexS);
-    var results = regex.exec(url);
-    return results == null ? null : results[1];
-}
 
 /**
  * Show menu UI with animation
@@ -65,22 +46,6 @@ var hideUI = function () {
 var isVideoPage = function () { return $("video").length; }
 
 /**
- * Get video information.
- * In future we need to retrieve information base on different video website(YouTube, etc..)
- * 
- * @author Junkai Yang
- * 
- * @returns {Object} - { title: '', id: '' }
- */
-var getVideoInfo = function () {
-    var videoId = gup("v", window.location.href);
-    var videoTitle = $("#eow-title").text();
-    return {
-        id: videoId,
-        title: videoTitle
-    };
-}
-/**
  * Invoked by event handler when ui ready message is received.
  * Get the video information and retrieve the captions from caption server then pass them to the menu frame dom.
  * 
@@ -92,17 +57,16 @@ var initUI = function (frame, videoElement) {
     if (!isVideoPage())
         frame.contentWindow.postMessage({ application: 'video_caption', type: "UI_INIT", success: false, message: 'This page does not contain a video.' }, "*");
     else {
-        var videoInfo = getVideoInfo();
-
-        CaptionUtil.getCaptions(videoInfo.id).then(function (response) {
+        var metadata = VideoApi.getMetadata();
+        CaptionUtil.getCaptions(metadata.video.id).then(function (response) {
             captions = response;
-            videoInfo.captionLength = captions.length;
+            metadata.captionLength = captions.length;
             frame.contentWindow.postMessage(
                 {
                     application: 'video_caption',
                     type: "UI_INIT",
                     success: true,
-                    message: JSON.stringify(videoInfo)
+                    message: JSON.stringify(metadata)
                 },
                 "*");
         });
@@ -126,13 +90,13 @@ var registerVideoTask = function (task) {
     VideoTasks.push(task);
     if (!TaskInterval) {
         frame = document.getElementById(chrome.runtime.id);
-        video = $("video")[0];
+        //video = $("video")[0];
         // If the task interval is null then create a new interval to execute tasks periodically
         TaskInterval = window.setInterval(function () {
             // Caption changed
             var captionChanged = false;
             // get the video time
-            var time = video.currentTime * 1000;
+            var time = VideoApi.getCurrentTime() * 1000;
 
             // Set current caption
             if (currentCaption && time < currentCaption.end && time >= currentCaption.start) {/* do nothing if caption doesn't change*/ }
@@ -181,8 +145,9 @@ var loadCaption = function (frameDom, videoDom) {
     $caption.css("text-align", 'center');
     $caption.css('font-size', '22px');
     $caption.css('box-sizing', 'border-box');
+    
     // Now it only support YouTube website so I just use the '.html5-video-player' selector to get the container of video in YouTube video page.
-    $(".html5-video-player").append($caption);
+    $(VideoApi.videoContainerSelector).append($caption);
 
     registerVideoTask(function (videoInfo) {
         if (videoInfo.captionChanged) {
@@ -419,7 +384,7 @@ window.addEventListener("message", function (event) {
             openEditor(frame, video);
             break;
         case "EDITOR_READY":
-            var videoInfo = getVideoInfo();
+            var videoInfo = VideoApi.getMetadata().video;
             videoInfo.captions = captions;
             document.getElementById("video_caption_editor_" + chrome.runtime.id).contentWindow.postMessage({
                 application: "video_caption", type: "EDITOR_INIT", message: videoInfo
@@ -467,7 +432,7 @@ var submitComment = function (caption, comment) {
     });
 }
 
-var playCaption = function(caption){
+var playCaption = function (caption) {
     var start = caption.start / 1000;
     $('video')[0].currentTime = start;
     $('video')[0].play();

@@ -35,7 +35,7 @@ if (!location.ancestorOrigins.contains(extensionOrigin)) {
         // iframe.style.cssText = 'position:absolute;top:' + topPos + ';left:' + leftPos + ';display:block;' + 
         //     'width: 890px;height:331px;z-index:2999999999;border:none;border-radius: 5px;';
             
-        iframe.style.cssText = "height:100%; width:100%;";
+        iframe.style.cssText = "height:100%; width:100%;border:none";
         //iframe.onload = addHandle(document.getElementsByTagName('body').item(0), window);
         $container.append($dragHandler);
         $container.append($(iframe));

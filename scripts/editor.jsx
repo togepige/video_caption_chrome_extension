@@ -398,6 +398,7 @@ var Captions = React.createClass({
         //$("#caption-container").draggable();
     },
     render: function () {
+        
         return (
             <div id="caption-container">
                 <a className="caption-control-arrow caption-control-arrow-left">

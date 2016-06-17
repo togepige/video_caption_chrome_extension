@@ -8,6 +8,13 @@
 
 chrome.browserAction.onClicked.addListener(function (tab) { //Fired when User Clicks ICON
     chrome.tabs.executeScript(null, { file: "scripts/content_scripts/inject_menu.js", allFrames: true });
+
+    if(tab.url.indexOf("youtube.com") != -1){
+        chrome.tabs.executeScript(null, { file: "scripts/video_api/youtube.js", allFrames: true });
+    }
+    else if(tab.url.indexOf("coursera.org") != -1){
+        chrome.tabs.executeScript(null, { file: "scripts/video_api/coursera.js", allFrames: true });
+    }
 });
 
 chrome.runtime.onMessage.addListener(
