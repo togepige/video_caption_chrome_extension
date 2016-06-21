@@ -446,6 +446,7 @@ var controlCancelTimeout;
  */
 var registerVCHotKey = function () {
     $(document).on('keydown.video_caption', function (e) {
+        if(controlTimeout) return;
         if (e.ctrlKey && e.key == "Control")
             if (controlCancelTimeout != null) {
                 clearTimeout(controlCancelTimeout);
@@ -482,6 +483,7 @@ var unbindVCHotkey = function () {
 function activeCommandCapture() {
     console.log("Active voice command capture");
     VCcaption = currentCaption;
+    VideoApi.pause();
     chrome.runtime.sendMessage({ application: "video_caption", type: "VC_SPEAKING" }, function (response) {
         //console.log(response.success);
     });
@@ -489,6 +491,7 @@ function activeCommandCapture() {
 
 function deActiveCommandCapture() {
     console.log("Deactive voice command capture");
+     VideoApi.play();
     chrome.runtime.sendMessage({ application: "video_caption", type: "VC_STOP_SPEAKING" }, function (response) {
         //console.log(response.success);
     });
