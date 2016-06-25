@@ -9,14 +9,14 @@
  * @author: Junkai Yang
  */
 
-captions = [];
-currentCaption = null;
-TaskInterval = null;
-VideoTasks = [];
-VCcaption = null;
+var captions = [];
+var currentCaption = null;
+var TaskInterval = null;
+var VideoTasks = [];
+var VCcaption = null;
 
-CaptionUtil = require("../caption.js");
-UserUtil = require("../user.js");
+var CaptionUtil = require("../caption.js");
+var UserUtil = require("../user.js");
 
 /**
  * Show menu UI with animation

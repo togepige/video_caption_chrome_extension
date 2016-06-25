@@ -23,6 +23,4 @@ EditorControl.scrollTo = function(caption) {
     
 }
 
-
-
 module.exports = EditorControl;

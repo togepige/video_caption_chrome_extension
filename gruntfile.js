@@ -93,22 +93,22 @@ module.exports = function (grunt) {
                 tasks: ['clean:build', 'copy', 'cssmin', 'babel', 'processhtml', 'browserify', 'clean:jsx']
             }
         },
-        babel: {
-            options: {
-                presets: ['react']
-            },
-            dist: {
-                files: [
-                    {
-                        expand: true,     // Enable dynamic expansion.
-                        src: ['scripts/**/*.jsx'],
-                        dest: '.',   // Destination path prefix.
-                        ext: '.build.js',   // Dest filepaths will have this extension.
-                        extDot: 'last'   // Extensions in filenames begin after the first dot
-                    }
-                ]
-            }
-        },
+        // babel: {
+        //     options: {
+        //         presets: ['react']
+        //     },
+        //     dist: {
+        //         files: [
+        //             {
+        //                 expand: true,     // Enable dynamic expansion.
+        //                 src: ['scripts/**/*.jsx'],
+        //                 dest: '.',   // Destination path prefix.
+        //                 ext: '.build.js',   // Dest filepaths will have this extension.
+        //                 extDot: 'last'   // Extensions in filenames begin after the first dot
+        //             }
+        //         ]
+        //     }
+        // },
         browserify: {
             libs: {
                 // External modules that don't need to be constantly re-compiled
@@ -139,5 +139,5 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('default', ['clean:build', 'copy', 'cssmin', 'babel', 'processhtml', 'browserify', 'clean:jsx']);
+    grunt.registerTask('default', ['clean:build', 'copy', 'cssmin', 'processhtml', 'browserify', 'clean:jsx']);
 };

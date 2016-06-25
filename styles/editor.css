@@ -208,12 +208,13 @@ body{
 } 
 
 .time-control-btn{
-    cursor: pointer;
+    cursor:  pointer;
 } 
+/**/
 
 /* Toggle */
 .toggle-label{
-    vertical-align: top;
+    vertical-align:  top;
     margin-right:6px;
     margin-bottom:0;
 }
@@ -226,7 +227,7 @@ body{
     border-radius: 100px;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-bottom:0;
+    margin-bottom: 0;
 }
 
 .toggle-indicator:after {

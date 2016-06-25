@@ -4,7 +4,7 @@
 
 
 
-VideoApi = {};
+var VideoApi = {};
 
 VideoApi.videoElement = null;
 

@@ -1,4 +1,4 @@
-VideoApi = require("./base.js");
+var VideoApi = require("./base.js");
 
 VideoApi.videoContainerSelector = ".c-video";
 

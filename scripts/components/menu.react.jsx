@@ -1,6 +1,5 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-
 // Loading indicator UI component
 var LoadingIndicator = React.createClass({
     isLoaded: function () {
@@ -142,10 +141,6 @@ var MenuWindow = React.createClass({
     }
 });
 
+module.exports = MenuWindow;
 
-// Render the menu window component
-ReactDOM.render(
-    <MenuWindow />,
-    document.getElementById('application')
-);
 

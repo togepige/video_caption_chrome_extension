@@ -1,4 +1,5 @@
-UserUtil = {};
+var UserUtil = {};
+
 UserUtil.server = "https://datascience.ischool.syr.edu/api/";
 
 UserUtil.currentUser = null;

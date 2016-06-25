@@ -1,7 +1,7 @@
 // main.js
 var moment = require("moment");
 var CaptionUtil = {};
-var UserUtil = require("./user.js");
+var UserUtil = require("./user");
 
 CaptionUtil.server = "https://datascience.ischool.syr.edu/";
 CaptionUtil.getCaptions = function (videoId) {
@@ -254,5 +254,5 @@ CaptionUtil.submitComment = function (caption, comment) {
     });
     return p;
 }
-
+//
 module.exports = CaptionUtil;
