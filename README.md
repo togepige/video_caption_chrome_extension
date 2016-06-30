@@ -7,16 +7,16 @@ Moreover, it should allow user to make bookmarks, write comments and correct cap
 
 ## Requirements
 * Node.js
-* Grunt-cli: `npm install -g grunt-cli`
+* Grunt-cli: `npm install -g gulp-cli`
 
 ## Build
 * `cd <project_dir>`
 * Run `npm install`
-* Run `grunt`
+* Run `gulp`
 
 ## Some notes
-1. If you add some files to public folder or any path not in the grunt watch list, run `grunt` to rebuild again.
+1. If you add some files to public folder or any path not in the grunt watch list, run `gulp` to rebuild again.
 
 ## Usage
 Currently it is still under development so you can download it and install in Chrome extension page.
-After build with `grunt`, load the `build` folder to Chrome Extension.
+After build with `gulp`, load the `build` folder to Chrome Extension.
